@@ -1,0 +1,20 @@
+.invalid-feedback{
+	color: #dc3545;
+    padding-left: 20px;
+    font-size: 12px;
+}
+a.showpwd:focus{
+    outline: unset;
+}
+.forgotpwdpage .showpwd {
+    position: absolute;
+    right: 15px;
+    top: 13px;
+}
+.forgotpwdpage .form-group{
+    margin-bottom: 20px;
+    position: relative;
+}
+.jq-toast-single, .jq-toast-single h2 {
+    font-family: 'GilroyExtraBold';
+}

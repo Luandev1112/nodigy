@@ -1,0 +1,73 @@
+.invalid-feedback{
+	color: #dc3545!important;
+    padding-left: 20px!important;
+    font-size: 12px!important;
+}
+.invalid-feedback:hover{
+    font-weight: unset !important;
+    color: #dc3545 !important;
+    padding-left: 20px!important;
+    font-size: 12px!important;
+}
+a.showpwd:focus{
+    outline: unset;
+}
+.forgotpwdpage .showpwd {
+    position: absolute;
+    right: 15px;
+    top: 13px;
+}
+.forgotpwdpage .form-group{
+    margin-bottom: 20px;
+    position: relative;
+}
+.jq-toast-single, .jq-toast-single h2 {
+    font-family: 'GilroyExtraBold';
+}
+.is-invalid{
+    border: 1px solid #dc3545 !important;
+}
+.form-error strong{
+    color: #dc3545 !important;
+}
+span.form-error:hover{
+    font-weight: unset !important;
+    color: #dc3545 !important;
+    font-size: 16px!important;
+}
+
+#form_subscription .form-group,
+#form_subscribe_news .form-group {
+    position: relative;
+}
+
+#form_subscription span.form-error,
+#form_subscribe_news span.form-error {
+    position: absolute;
+    bottom: -25px;
+}
+
+@media (max-width:767px){
+    #form_subscription .form-group,
+    #form_subscribe_news .form-group {
+        margin-bottom: 30px;
+    }    
+}
+@media (max-width:350px){    
+    #form_subscription span.form-error,
+    #form_subscribe_news span.form-error {
+        font-size: 12px;
+    }
+}
+header .header-right .signup{
+    margin-left:25px;
+}
+.btn:focus-visible,
+.btn.active.focus, .btn.active:focus, .btn.focus, .btn:active.focus, .btn:active:focus, .btn:focus {
+    outline: unset;
+}
+/* signup tmp hide menu or link */
+.signup a,
+.donthaveacount a{
+    display: none !important;
+}

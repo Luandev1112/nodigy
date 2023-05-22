@@ -1,0 +1,17 @@
+$(document).ready(function(){
+	$(".mobilenavicon").click(function(){
+	  $("body").toggleClass("opensidebar");
+	});
+	
+	$('.themechange input:checkbox').change(function(){
+		if($(this).is(":checked")) {
+			$("body").addClass("darkmode");
+			$("body").removeClass("lightmode");
+		} else {
+			$("body").removeClass("darkmode");
+			$("body").removeClass("lightmode");
+		}
+	});
+
+
+});
