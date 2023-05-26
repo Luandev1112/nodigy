@@ -8,12 +8,21 @@ import Step2 from "../components/wallet/step2.js";
 import Step3 from "../components/wallet/step3.js";
 import Step4 from "../components/wallet/step4.js";
 import Fiat1 from "../components/wallet/fiat1.js";
+import ChooseServer from "../components/wallet/ChooseServer.js";
+import TopupAccount from "../components/wallet/TopupAccount.js";
+import DepositSuccess from "../components/wallet/DepositSuccess.js";
+import WalletInstall from '../components/wallet/WalletInstall';
+import NodeInstall from '../components/wallet/NodeInstall';
+import NodePreparation from '../components/wallet/NodePreparation';
 
 const WalletConnect = () => {
     const [step, setStep] = useState(1);
-    const [widthArr, setWidthArr] = useState([0, 31, 39, 45, 51, 57, 63, 69, 100]);
+    const [widthArr, setWidthArr] = useState([0, 21, 39, 45, 51, 57, 63, 69, 100]);
     const [disableBtn, setDisableBtn] = useState('prev');
     const [btnStatus, setBtnStatus] = useState(true);
+    const [leftOffset, setLeftOffset] = useState(0);
+    const [subStep, setSubStep] = useState('');
+    const [myValance, setMyValance] = useState(5);
 
     const nextStep = () => {
         if(step < 8){
@@ -24,6 +33,7 @@ const WalletConnect = () => {
                 setDisableBtn('none')
             }
             setStep(step + 1);
+            setSubStep('');
         }
     }
 
@@ -35,35 +45,82 @@ const WalletConnect = () => {
                 setDisableBtn('none')
             }
             setStep(step - 1);
+            setSubStep('');
         }
     }
+
+    useEffect(() => {
+        const offsets = document.querySelectorAll('.step-bar a.active');
+        const leftoffset = offsets[offsets.length - 1].offsetLeft;
+        setLeftOffset(leftoffset);
+        console.log(leftoffset);
+    }, [step]);
 
     return (
         <div className="steps">
             <div className="step-header">
                 <div className="container">
                     <div className="logo"><img src={LogoImage} /></div>
-                    <div className="btn-header">
-                        <Link to="/admin/dashboard" className="btn btn-primary"><svg width="10" height="7" viewBox="0 0 10 7" fill="none" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M3.60603 0.843309C3.33548 0.593571 2.91371 0.61044 2.66397 0.880985L0.510125 3.21429C0.274393 3.46967 0.274391 3.86329 0.51012 4.11867L2.66397 6.45203C2.9137 6.72257 3.33547 6.73945 3.60602 6.48971C3.87657 6.23998 3.89344 5.81821 3.64371 5.54766L2.52264 4.33315L8.99999 4.33315C9.36818 4.33315 9.66666 4.03467 9.66666 3.66648C9.66666 3.29829 9.36818 2.99982 8.99999 2.99982L2.52266 2.99982L3.6437 1.78536C3.89344 1.51482 3.87657 1.09305 3.60603 0.843309Z" fill="#BAC3CA"/></svg> Back to Home</Link>
+                    <div className="btn-header actionright">
+                        <div className="dropdown walletdropdown">
+                            <a className="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"><img src="/img/icon-empty-wallet.png" /> <span>$10,350752.45</span></a>
+                            <ul className="dropdown-menu">
+                                <li><a className="dropdown-item" href="#">$10,350752.45</a></li>
+                                <li><a className="dropdown-item" href="#">$10,350752.45</a></li>
+                            </ul>
+                        </div>
+                        <div className="dropdown notifications">
+                            <a className="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"><img src="/img/icon-notifications.svg" /></a>
+                            <ul className="dropdown-menu">
+                                <li><a className="dropdown-item" href="#">Option 1</a></li>
+                                <li><a className="dropdown-item" href="#">Option 2</a></li>
+                            </ul>
+                        </div>
+                        
+                        <div className="dropdown profiledropdown">
+                            <a className="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div className="img"><img src="/img/profile-img-new.png" /></div>
+                            </a>
+                            <ul className="dropdown-menu">
+                                <li className="title"><a>Кузнецова Мария</a></li>
+                                <li><a href="#"><img src="/img/icon-setings.png" /> Account settings</a></li>
+                                <li><a href="#"><img src="/img/icon-logout.png" /> Account settings</a></li>
+                                <li className="last">
+                                    <span className="text">Dark mode</span>
+                                    <div className="cus_switch themechange">
+                                        <input type="checkbox" checked />
+                                        <span></span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
             <div className="step-bar">
-                <div className="line"><span style={{width: widthArr[step]+"%"}}></span></div>
-                <a href="#" className={step>=1?"checked":""} />
-                <a href="#" className={step>=2?"checked":""} />
-                <a href="#" className={step>=3?"checked":""} />
-                <a href="#" className={step>=4?"checked":""} />
-                <a href="#" className={step>=5?"checked":""} />
-                <a href="#" className={step>=6?"checked":""} />
-                <a href="#" className={step>=7?"checked":""} />
-                <a href="#" className={step>=8?"checked":""} />
+                <div className="line"><span style={{width: leftOffset+"px"}}></span></div>
+                <a href="#" className={step>=1?"checked active":""} />
+                <a href="#" className={step>=2?"checked active":""} />
+                <a href="#" className={step>=3?"checked active":""} />
+                <a href="#" className={step>=4?"checked active":""} />
+                <a href="#" className={step>=5?"checked active":""} />
+                <a href="#" className={step>=6?"checked active":""} />
+                <a href="#" className={step>=7?"checked active":""} />
+                <a href="#" className={step>=8?"checked active":""} />
             </div>
             { step == 1 && <Step1 /> }
             { step == 2 && <Step2 /> }
-            { step == 3 && <Step3 /> }
+            {/* { step == 3 && <Step3 /> } */}
+            { step == 3 && subStep == '' && <ChooseServer setStep={setStep} setSubStep={setSubStep} valance={myValance} /> }
+            { step == 3 && subStep == 'topup' && <TopupAccount setStep={setStep} setSubStep={setSubStep} setMyValance={setMyValance} valanceType="server" />}
             { step == 4 && <Step4 /> }
-            { step == 5 && <Fiat1 /> }
+            { step == 5 && subStep=='' && <Fiat1 /> }
+            { step == 5 && subStep == 'topup' && <TopupAccount setStep={setStep} setSubStep={setSubStep} setMyValance={setMyValance} valanceType="server" />}
+            { step == 5 && subStep == 'deposit-success' && <DepositSuccess setStep={setStep} setSubStep={setSubStep} valanceType="server" /> }
+            { step == 7 && subStep == 'deposit-success' && <DepositSuccess setStep={setStep} setSubStep={setSubStep} valanceType="node-install" /> }
+            { step == 6 && subStep == '' && <NodePreparation setStep={setStep} setSubStep={setSubStep} /> }
+            { step == 6 && subStep == 'wallet-install' && <WalletInstall setStep={setStep} setSubStep={setSubStep} /> }
+            { step == 7 && subStep == '' && <NodeInstall setStep={setStep} setSubStep={setSubStep} /> }
             <div className="step-footer">
             
                 <div className="container">
