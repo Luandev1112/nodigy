@@ -184,8 +184,10 @@ const Wallets = () => {
                     sessionStorage.setItem('solana', JSON.stringify(_solana));
                 }else{
                     let _solana = {
-                        name: walletName,
-                        address: publicKey
+                        phantom: {
+                            name: walletName,
+                            address: publicKey
+                        }
                     };
                     sessionStorage.setItem('solana', JSON.stringify(_solana));
                 }

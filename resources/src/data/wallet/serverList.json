@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "name": "Minimum required",
+        "vcpus": "1 Intel",
+        "ram": "2 GB",
+        "ssd" : "16 GB"
+    },
+    {
+        "id": 2,
+        "name": "Recommended",
+        "vcpus": "2 Intel",
+        "ram": "4 GB",
+        "ssd" : "32 GB"
+    },
+    {
+        "id": 3,
+        "name": "Max performance",
+        "vcpus": "4 Intel",
+        "ram": "8 GB",
+        "ssd" : "64 GB"
+    }
+]
