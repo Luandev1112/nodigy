@@ -17,7 +17,7 @@ const DepositSuccess = ({setStep, setSubStep, valanceType}) => {
             <div className="container">
                 <div className="row">
                     <div className="col-sm-12">
-                        <div className="borerbox" style={{border:0, background:'transparent', paddingLeft:0}}>
+                        <div className="borerbox border-0 bg-transparent ps-0">
                             <div className="items border-left border-down">
                                 <div className="p30">
                                     <div className="nod-center-text">

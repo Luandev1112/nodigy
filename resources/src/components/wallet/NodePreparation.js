@@ -1,5 +1,15 @@
 import React, {useEffect, useState} from 'react';
 const NodePreparation = ({setStep, setSubStep}) => {
+    const [poolId, setPoolId] = useState('12345');
+    const [poolChain, setPoolChain] = useState('');
+    
+    const handleInputChange = (e) => {
+        e.preventDefault();
+        const inputData = e.target.value;
+        const inputName = e.taget.name;
+        setPoolId(inputData);
+    }
+
     useEffect(() => {
        console.log("useEffect");
     });
@@ -8,7 +18,7 @@ const NodePreparation = ({setStep, setSubStep}) => {
             <div className="container">
                 <div className="row">
                     <div className="col-sm-12">
-                        <div className="borerbox" style={{border:0, background:'transparent', paddingLeft:0}}>
+                        <div className="borerbox border-0 bg-transparent ps-0">
                             <div className="items border-left border-down">
                                 <div className="p30">
                                     <div className="title">Node Installation Preparing</div>
@@ -54,7 +64,7 @@ const NodePreparation = ({setStep, setSubStep}) => {
                                             <div className="col-sm-6">
                                                 <div className="form-group">
                                                     <label>Pool ID</label>
-                                                    <input type="text" className="form-control" value="12345" />
+                                                    <input type="text" className="form-control" value={poolId} onChange={handleInputChange} />
                                                 </div>
                                             </div>
                                             <div className="col-sm-6">

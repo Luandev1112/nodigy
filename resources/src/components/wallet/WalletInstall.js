@@ -14,7 +14,6 @@ const WalletInstall = () => {
                         <source src="https://www.w3schools.com/html/mov_bbb.ogg" type="video/ogg" />
                         Your browser does not support HTML video.
                     </video>
-                   
                 </div>
                 <div className="btn-container">
                     <a href="#" className="btn btn-default">Connect wallet</a>

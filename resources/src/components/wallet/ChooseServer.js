@@ -73,13 +73,13 @@ const ChooseServer = ({setStep, setSubStep, valance}) => {
                                 <div className="title">My Balance <span>12 $USDT</span></div>
                                 <h4>Payment details</h4>
                                 <div className="row">
-                                    <label className="col-xs-8">One-time onboarding fee</label>
-                                    <p className="col-xs-4">20 $USDT</p>
+                                    <label className="col-sm-8">One-time onboarding fee</label>
+                                    <p className="col-sm-4">20 $USDT</p>
                                 </div>
                                 <div className="totalrow">
                                     <div className="row">
-                                        <label className="col-xs-8">Total</label>
-                                        <p className="col-xs-4">20 $USDT</p>
+                                        <label className="col-sm-8">Total</label>
+                                        <p className="col-sm-4 mt-2">20 $USDT</p>
                                     </div>
                                 </div>
                                 {
