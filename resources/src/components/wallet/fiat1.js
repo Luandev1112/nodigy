@@ -60,21 +60,21 @@ const Fiat1 = () => {
                             <div className="items transferdetailsbox border-left">
                                 <div className="title">Transfer details</div>
                                 <div className="row">
-                                    <label className="col-xs-5">Deposit To This Iban</label>
-                                    <p className="col-xs-7">PT34 313131 313 1313131</p>
+                                    <label className="col-sm-5">Deposit To This Iban</label>
+                                    <p className="col-sm-7">PT34 313131 313 1313131</p>
                                 </div>
                                 <div className="row">
-                                    <label className="col-xs-5">Reference</label>
-                                    <p className="col-xs-7">nym9879879</p>
+                                    <label className="col-sm-5">Reference</label>
+                                    <p className="col-sm-7">nym9879879</p>
                                 </div>
                                 <div className="row">
-                                    <label className="col-xs-5">Setup fee</label>
-                                    <p className="col-xs-7">€20</p>
+                                    <label className="col-sm-5">Setup fee</label>
+                                    <p className="col-sm-7">€20</p>
                                 </div>
                                 <div className="totalrow">
                                     <div className="row">
-                                        <label className="col-xs-5">Total</label>
-                                        <p className="col-xs-7">€ 40 000 020</p>
+                                        <label className="col-sm-5">Total</label>
+                                        <p className="col-sm-7">€ 40 000 020</p>
                                     </div>
                                 </div>
                                 <div className="btn-container">

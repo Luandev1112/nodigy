@@ -56,18 +56,18 @@ const ServerConfig = ({setStep, setSubStep}) => {
                         </div>
                     </div>
                     <div className="col-sm-5">
-                        <div className="borerbox" style={{border:0, background:'transparent', paddingLeft:0}}>
+                        <div className="borerbox border-0 bg-transparent ps-0">
                             <div className="items transferdetailsbox server-balance-block border-left">
                                 <div className="title">My Balance <span>12 $USDT</span></div>
                                 <h4>Payment details</h4>
                                 <div className="row">
-                                    <label className="col-xs-8">One-time onboarding fee</label>
-                                    <p className="col-xs-4">20 $USDT</p>
+                                    <label className="col-sm-8">One-time onboarding fee</label>
+                                    <p className="col-sm-4">20 $USDT</p>
                                 </div>
                                 <div className="totalrow">
                                     <div className="row">
-                                        <label className="col-xs-8">Total</label>
-                                        <p className="col-xs-4">20 $USDT</p>
+                                        <label className="col-sm-8">Total</label>
+                                        <p className="col-sm-4">20 $USDT</p>
                                     </div>
                                 </div>
                                 <div className="insufficientbalance">Your balance has insufficient funds</div>

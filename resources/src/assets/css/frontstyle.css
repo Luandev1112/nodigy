@@ -1060,8 +1060,6 @@ a {
 .connectwallet.step3 .item3 .hovercontent p{font-size: 14px; line-height: 24px; color:#2C353D; display:flex; align-items:center; justify-content:space-between;}
 .connectwallet.step3 .item3 .hovercontent p a{text-decoration: underline;}
 
-
-
 .congratulations .step-loader .img{margin-top:20px;}
 .congratulations .text{margin-bottom:30px;}
 .congratulations .step-loader .subtext{font-size:18px; line-height:24px; max-width:610px; margin:0 auto 20px;}
@@ -1109,7 +1107,7 @@ a {
 .step-header .actionright .dropdown-menu>li.last{font-size: 14px; line-height:32px; letter-spacing: 0.2px; font-family: 'GilroyExtraBold'; font-weight:700; border-top:1px solid #2A313C; font-size: 16px; padding:8px 20px; color:#fff; display:flex; align-items:center;}
 .step-header .actionright .dropdown-menu>li.last span.text{width:calc(100% - 44px);}
 .steps .step-header .btn-header .btn{color:#BAC3CA;}
-.installation{}
+/* .installation{} */
 .installation .btn-container{margin-top:30px; text-align:center;}
 .installation .btn-container a{width:100%; max-width:672px; margin:0 auto;}
 .installation .step-loader .img{margin-bottom:30px;}
@@ -1132,7 +1130,7 @@ a {
 .n_r_form_field .form-group span{position:absolute; right:8px; top:8px; z-index:1; color: #BAC3CA; font-size: 22px; line-height: 24px;background: #2C353D; border-radius: 10px; display:inline-block; padding:15px 20px;}
 .n_r_form_field .form-group .form-control{color:#fff;}
 .nodeinstallation .btn-container{display: flex; align-items: center; justify-content: space-between;}
-.nodeinstallation .btn-container .btn{width:50%; padding-top:27px; padding-bottom:27px;font-family: 'GilroyExtraBold';font-weight: 700; font-size: 26px; line-height: 24px;}
+.nodeinstallation .btn-container .btn{width:50%; padding-top:27px; padding-bottom:27px;font-family: 'GilroyExtraBold';font-weight: 700; font-size: 24px; line-height: 24px;}
 .nodeinstallation .btn-container .btn:first-child{margin-right:10px;}
 .nodeinstallation .btn-container .btn:last-child{margin-left:10px;}
 .nodeinstallation .btn-container .btn.btn-buytoken{background:url(../img/tag-comingsoon.png) no-repeat #BAC3CA;}

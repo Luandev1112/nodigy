@@ -8,12 +8,19 @@ import Step2 from "../components/wallet/step2.js";
 import Step3 from "../components/wallet/step3.js";
 import Step4 from "../components/wallet/step4.js";
 import Fiat1 from "../components/wallet/fiat1.js";
+import WalletList from "../components/wallet/WalletList.js";
 import ChooseServer from "../components/wallet/ChooseServer.js";
 import TopupAccount from "../components/wallet/TopupAccount.js";
 import DepositSuccess from "../components/wallet/DepositSuccess.js";
+import DepositFail from '../components/wallet/DepositFail';
 import WalletInstall from '../components/wallet/WalletInstall';
 import NodeInstall from '../components/wallet/NodeInstall';
 import NodePreparation from '../components/wallet/NodePreparation';
+import NodeSuccess from '../components/wallet/NodeSuccess';
+import NodeRequirement4 from '../components/wallet/NodeRequrement4';
+import NodeRequirement1 from '../components/wallet/NodeRequrement1';
+import NodeRequirement2 from '../components/wallet/NodeRequrement2';
+import NodeRequirement3 from '../components/wallet/NodeRequrement3';
 
 const WalletConnect = () => {
     const [step, setStep] = useState(1);
@@ -23,6 +30,14 @@ const WalletConnect = () => {
     const [leftOffset, setLeftOffset] = useState(0);
     const [subStep, setSubStep] = useState('');
     const [myValance, setMyValance] = useState(5);
+    const [walletName, setWalletName] = useState('');
+    const [installWallet, setIstallWallet] = useState(null);
+    
+    const [chkStatus, setChkStatus] = useState(true);
+    const handleChecked = (e) => {
+        const chkData = e.target.value;
+        console.log(chkData);
+    } 
 
     const nextStep = () => {
         if(step < 8){
@@ -32,8 +47,31 @@ const WalletConnect = () => {
             }else{
                 setDisableBtn('none')
             }
-            setStep(step + 1);
-            setSubStep('');
+            if(step == 7){
+                switch(subStep){
+                    case '':
+                        setSubStep('node-install-success');
+                    break;
+                    case 'node-install-success':
+                        setSubStep('stake-1');
+                    break;
+                    case 'stake-1':
+                        setSubStep('stake-2');
+                    break;
+                    case 'stake-2':
+                        setSubStep('stake-3');
+                    break;
+                    case 'stake-3':
+                        setSubStep('stake-4');
+                    break;
+                    case 'stake-4':
+                        // setSubStep('stake-2');
+                    break;
+                }
+            }else{
+                setStep(step + 1);
+                setSubStep('');
+            }
         }
     }
 
@@ -88,7 +126,7 @@ const WalletConnect = () => {
                                 <li className="last">
                                     <span className="text">Dark mode</span>
                                     <div className="cus_switch themechange">
-                                        <input type="checkbox" checked />
+                                        <input type="checkbox" checked={chkStatus} onChange={handleChecked} />
                                         <span></span>
                                     </div>
                                 </li>
@@ -113,16 +151,21 @@ const WalletConnect = () => {
             {/* { step == 3 && <Step3 /> } */}
             { step == 3 && subStep == '' && <ChooseServer setStep={setStep} setSubStep={setSubStep} valance={myValance} /> }
             { step == 3 && subStep == 'topup' && <TopupAccount setStep={setStep} setSubStep={setSubStep} setMyValance={setMyValance} valanceType="server" />}
-            { step == 4 && <Step4 /> }
-            { step == 5 && subStep=='' && <Fiat1 /> }
+            { step == 4 && <WalletList setWalletName={setWalletName} setStep={setStep} /> }
+            { step == 5 && subStep=='' && <WalletInstall /> }
             { step == 5 && subStep == 'topup' && <TopupAccount setStep={setStep} setSubStep={setSubStep} setMyValance={setMyValance} valanceType="server" />}
             { step == 5 && subStep == 'deposit-success' && <DepositSuccess setStep={setStep} setSubStep={setSubStep} valanceType="server" /> }
-            { step == 7 && subStep == 'deposit-success' && <DepositSuccess setStep={setStep} setSubStep={setSubStep} valanceType="node-install" /> }
-            { step == 6 && subStep == '' && <NodePreparation setStep={setStep} setSubStep={setSubStep} /> }
+            { step == 5 && subStep == 'deposit-fail' && <DepositFail setStep={setStep} setSubStep={setSubStep} valanceType="server" /> }
             { step == 6 && subStep == 'wallet-install' && <WalletInstall setStep={setStep} setSubStep={setSubStep} /> }
+            { step == 6 && subStep == '' && <NodePreparation setStep={setStep} setSubStep={setSubStep} /> }
             { step == 7 && subStep == '' && <NodeInstall setStep={setStep} setSubStep={setSubStep} /> }
+            { step == 7 && subStep == 'deposit-success' && <DepositSuccess setStep={setStep} setSubStep={setSubStep} valanceType="node-install" /> }
+            { step== 7 && subStep == 'node-install-success' && <NodeSuccess /> }
+            { step== 7 && subStep == 'stake-1' && <NodeRequirement1 /> }
+            { step== 7 && subStep == 'stake-2' && <NodeRequirement2 /> }
+            { step== 7 && subStep == 'stake-3' && <NodeRequirement3 /> }
+            { step== 7 && subStep == 'stake-4' && <NodeRequirement4 /> }
             <div className="step-footer">
-            
                 <div className="container">
                     <div className="row">
                         <div className="col-sm-3">

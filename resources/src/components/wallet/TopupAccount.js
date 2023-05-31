@@ -8,9 +8,6 @@ const TopupAccount = ({setStep, setSubStep, setMyValance, valanceType}) => {
     const [amountFrom, setAmountFrom] = useState('301 000 000');
     const [amountTo, setAmountTo] = useState(301.001);
     const [tabType, setTabType] = useState('card');
-
-    console.log("Valance type", valanceType);
-
     const handleChange = (e) => {
         e.preventDefault();
         const name = e.target.name;
@@ -52,6 +49,19 @@ const TopupAccount = ({setStep, setSubStep, setMyValance, valanceType}) => {
             break;
             case 'deposit':
                 setSubStep('deposit-success');
+                setStep(7);
+            break;
+        }
+    }
+
+    const handleDepositFail = () => {
+        switch(valanceType) {
+            case 'server':
+                setSubStep('deposit-fail');
+                setStep(5);    
+            break;
+            case 'deposit':
+                setSubStep('deposit-fail');
                 setStep(7);
             break;
         }
@@ -139,7 +149,7 @@ const TopupAccount = ({setStep, setSubStep, setMyValance, valanceType}) => {
                                                 </div>
                                             </div>
                                             <div className="btn-container">
-                                                <input type="button" className="btn btn-primary btn-new btn-gray width100" defaultValue="Connect" />
+                                                <button type="button" className="btn btn-primary btn-new btn-gray width100">Connect</button>
                                             </div>
                                             <div className="disconnectaccount item border-left">
                                                 <div className="icon"><img src="/img/step3-img1.png" /></div>

@@ -290,6 +290,7 @@ const Wallets = () => {
     }
 
     useEffect(()=>{
+
         if(connectionStatus){
             window.location.href = "/admin/wallet-details";
         }

@@ -1,79 +1,71 @@
 import React, {useState, useEffect} from 'react';
-import NYMImage from "../../assets/img/nym.png";
-import EvmosImage from "../../assets/img/evmos-logo.png";
-import StarknetImage from "../../assets/img/web3item4.png";
-import ArbitrumImage from "../../assets/img/nodes-logo-icon2.png";
-
+import nodeList from "../../data/wallet/nodeList.json";
 const Step2 = () => {
+    const [nodes, setNodes] = useState(nodeList);
+    const [networkType, setNetworkType] = useState('all');
+    const filterByNet = (netType) => {
+        setNetworkType(netType);
+        let filterdNodes = [];
+        if(netType == 'all'){
+            filterdNodes = nodeList;
+        }else{
+            filterdNodes = nodeList.filter(node => node.type == netType);
+        }
+        setNodes(filterdNodes);
+    };
+    useEffect(()=>{
+        // filterByNet('all');
+    });
     return (
-        <div className="steps-content step2">
+        <div className="steps-content step-new step2 step2new">
             <div className="container">
-                <div className="title">Доступ к продуктам</div>
-                <div className="desc"><p>Многочлен стабилизирует невероятный критерий сходимости Коши. Несмотря на сложности, абсолютная погрешность последовательно транслирует аксиоматичный расходящийся ряд. Используя таблицу интегралов элементарных функций</p></div>
+                <div className="title">Choose a web3 project to validate</div>
+                <div className="desc">
+                    <p>Attention! It's crucial to DYOR things before you start!  Do Your Own Research — analytical materials, articles, project docs, and social media will help. Dive into the project's story and perspectives before making any investment decision. I'm just a deployment wizard who's not competent enough to do it for you.</p>
+                    <p>You might see some projects double each other at this stage. Pay attention to their status — it could be mainnet or testnet, and they'll have different conditions for validators.</p>
+                </div>
+                <div className="step2_filter">
+                    <a onClick={()=>filterByNet('all')} className={networkType=='all'?"active":""}>All Projects</a>
+                    <a onClick={()=>filterByNet('test')} className={networkType=='test'?"active":""}>Testnet</a>
+                    <a onClick={()=>filterByNet('main')} className={networkType=='main'?"active":""}>Mainnet</a>
+                </div>
                 <div className="borerbox">
                     <div className="row">
-                        <div className="col-sm-6">
-                            <div className="items item1 border-up">
-                                <div className="innerbox transparentbg">
-                                    <div className="box-img"><img src={NYMImage} /></div>
-                                    <div className="box-content">
-                                        <div className="box-title">NYM</div>
-                                        <p>Продвижение проекта спорадически стабилизирует креативный анализ</p>
-                                        <div className="setupfree">
-                                            <a href="#">Setup fee</a>
-                                            <div className="price">€20</div>
+                        {nodes.map((node, i) => {
+                            return(
+                                <div className="col-sm-6" key={i}>
+                                    <div className="items item1 border-up">
+                                        <div className="innerbox transparentbg">
+                                            <div className="box-head">
+                                                <div className="img"><img src={node.image} /></div>
+                                                <div className="name">{node.name}</div>
+                                                {node.type == 'main' && <div className="tag"><span className="mainnet">Mainnet</span></div>}
+                                                {node.type == 'test' && <div className="tag"><span className="testnet">Testnet</span></div>}
+                                            </div>
+                                            <div className="box-content">
+                                                <p>{node.description}<a href="#">Learn more...</a></p>
+                                                <div className="minstake">
+                                                    <table>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Min stake:</td>
+                                                                <td className="text-right">{node.min_stake}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colSpan="2" className="text-right">~ {node.min_price}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colSpan="2" className="text-right"><span className="setupfee">Setup fee  ~ {node.setup_fee}</span></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-sm-6">
-                            <div className="items item2 border-down border-left">
-                                <div className="innerbox transparentbg">
-                                    <div className="box-img"><img src={EvmosImage} /></div>
-                                    <div className="box-content">
-                                        <div className="box-title">Evmos</div>
-                                        <p>Сегмент рынка спонтанно специфицирует эмпирический потребительский</p>
-                                        <div className="setupfree">
-                                            <a href="#">Setup fee</a>
-                                            <div className="price">€20</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="col-sm-6">
-                            <div className="items item3 noborder">
-                                <div className="innerbox transparentbg">
-                                    <div className="box-img"><img src={StarknetImage} /></div>
-                                    <div className="box-content">
-                                        <div className="box-title">Starknet</div>
-                                        <p>Традиционный канал многопланово искажает связанный формирование</p>
-                                        <div className="setupfree">
-                                            <a href="#">Setup fee</a>
-                                            <div className="price">€20</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-sm-6">
-                            <div className="items item4 border-right">
-                                <div className="innerbox transparentbg">
-                                    <div className="box-img"><img src={ArbitrumImage} /></div>
-                                    <div className="box-content">
-                                        <div className="box-title">Fusotao </div>
-                                        <p>Продвижение проекта спорадически стабилизирует креативный анализ</p>
-                                        <div className="setupfree">
-                                            <a href="#">Setup fee</a>
-                                            <div className="price">€20</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                </div> 
+                            )
+                        })}
                     </div>
                 </div>
             </div>

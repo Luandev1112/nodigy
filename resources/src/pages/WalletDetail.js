@@ -9,7 +9,7 @@ import IconCloseModalImage from '../assets/img/icon-close-modal.png';
 import DropdownImage from '../assets/img/dropdown-img1.png';
 import networkList from '../data/wallet/networkList.json';
 import walletList from '../data/wallet/walletList.json';
-
+import networkWallets from '../data/wallet/networkWallets.json';
 import { BraavosConnector } from '@web3-starknet-react/braavos-connector'
 
 // Phantom
@@ -38,6 +38,14 @@ const WalletDetail = () => {
     const [solanaNet, setSolanaNet] = useState(JSON.parse(sessionStorage.getItem('solana')));
     const [cosmosNet, setCosmosNet] = useState(JSON.parse(sessionStorage.getItem('cosmos')));
     const [starkNet, setStarkNet] = useState(JSON.parse(sessionStorage.getItem('starknet')));
+
+    // add wallet modal
+    const [selectedNetworkIndex, setSelectedNetworkIndex] = useState(-1);
+    const [modalWalletList, setModalWalletList] = useState([]);
+    const [selectedWallet, setSelectedWallet] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [connectionStatus, setConnectionStatus] = useState(false);
+    const [walletName, setWalletName] = useState('');
 
     const web3Modal = typeof window !== 'undefined' && new Web3Modal({ cacheProvider: true });
     const braavosWalletConnector = new BraavosConnector({ supportedChainIds: [1, 5] });
@@ -105,6 +113,14 @@ const WalletDetail = () => {
                 setWalletAddresses(_wallets);
             });
         }
+    }
+
+    const onInputChange = (e) => {
+        e.preventDefault();
+        if(e.target.name == 'wallet-name'){
+            setWalletName(e.target.value);
+        }
+        console.log(e.target.name);
     }
 
     const checkWallets = () => {
@@ -177,6 +193,12 @@ const WalletDetail = () => {
     const initMetamask = async () => {
         const web3 = new Web3(window.ethereum);
         const accounts = await web3.eth.getAccounts();
+        console.log("Init Metamask =============");
+        web3.eth.getChainId().then(chainId => {
+            console.log(`Chain ID: ${chainId}`);
+        }).catch(error => {
+            console.error(error);
+        });
         if (accounts.length > 0) {
             const connection = web3Modal && (await web3Modal.connect());
             const provider = new ethers.providers.Web3Provider(connection);
@@ -206,6 +228,14 @@ const WalletDetail = () => {
     const initPhantom = async () => {
         if (window.solana && window.solana.isPhantom) {
             const { solana } = window;
+            const web3 = new Web3(window.solana);
+            console.log("Init Solana =============");
+            console.log(window.solana);
+            // web3.eth.getChainId().then(chainId => {
+            //     console.log(`Chain ID: ${chainId}`);
+            // }).catch(error => {
+            //     console.error(error);
+            // });
             try {
                 const response = await solana.connect({ onlyIfTrusted: true });
                 const pubKey = response.publicKey.toString();
@@ -300,8 +330,232 @@ const WalletDetail = () => {
         }
     }
 
+    const selectModalNetwork = (indexId) => {
+        setSelectedNetworkIndex(indexId);
+        const networkId = networkList[indexId].id;
+        const selectedNetwork = networkWallets.find(nWallet => nWallet.networkId === networkId);
+        setModalWalletList(selectedNetwork.wallets);
+        setSelectedWallet(null);
+    }
+
+    const selectModalWallet = (indexId) => {
+        if(modalWalletList.length == 0){
+            setSelectedWallet(null);
+        }else{
+            setSelectedWallet(modalWalletList[indexId]);
+        }
+    }
+
+    const walletConnectConfirm = async () => {
+        if(selectedWallet)
+        {
+            const walletName = selectedWallet.name;
+            switch(walletName){
+                case 'MetaMask':
+                    await metamaskConnect();
+                break;
+                case 'Phantom':
+                    await connectPhantomWallet();
+                break;
+                case 'Keplr':
+                    await connectToKeplr();
+                break;
+                case 'Braavos':
+                    await connectBraavosWallet();
+                break;
+            }
+        }else{
+            console.log("There is not selected wallet");
+        }
+        setShow(false);
+    }
+
+    const checkIfExtensionIsAvailable = () => {
+        if (
+            (window && window.web3 === undefined) ||
+            (window && window.ethereum === undefined)
+        ) {
+            setError(true);
+            web3Modal && web3Modal.toggleModal();
+        }
+    }; 
+
+    const metamaskConnect = async () => {
+        try {
+            setLoading(true);
+            checkIfExtensionIsAvailable();
+            const connection = web3Modal && (await web3Modal.connect());
+            const provider = new ethers.providers.Web3Provider(connection);
+            await subscribeProvider(connection);
+            setWalletAddress(provider);
+            setLoading(false);
+            setConnectionStatus(true);
+        } catch (error) {
+            console.log(error);
+            setLoading(false);
+            setConnectionStatus(false);
+            // console.log("Got this error on connectToWallet catch block while connecting the wallet");
+        }
+    };
+
+    const setWalletAddress = async (provider) => {
+        try {
+            const signer = provider.getSigner();
+            if(signer) {
+                const web3Address = await signer.getAddress();
+                getBalance(provider, web3Address);
+                const evm = sessionStorage.getItem('evm');
+                if(evm){
+                    let _evm = JSON.parse(evm);
+                    _evm.metamask = {
+                        address: web3Address,
+                        name: walletName
+                    };
+                    sessionStorage.setItem('evm', JSON.stringify(_evm));
+                }else{
+                    let _evm = {
+                        metamask: {
+                            address: web3Address,
+                            name: walletName
+                        }
+                    };
+                    sessionStorage.setItem('evm', JSON.stringify(_evm));
+                }
+            }
+        } catch (error) {
+            setConnectionStatus(false);
+            console.log("Account not connected; logged from setWalletAddress function");
+        }
+    };
+
+    const connectPhantomWallet = async () => {
+        if (window.solana && window.solana.isPhantom) {
+            try{
+                const provider = window.solana;
+                console.log("solana - ", provider);
+                await provider.connect();
+                const connection = new Connection('https://api.mainnet-beta.solana.com');
+                const publicKey = await provider.publicKey;
+                console.log("public key:", publicKey);
+
+                const solana = sessionStorage.getItem('solana');
+                if(solana){
+                    let _solana = JSON.parse(solana);
+                    _solana.phantom = {
+                        name: walletName,
+                        address: publicKey
+                    };
+                    sessionStorage.setItem('solana', JSON.stringify(_solana));
+                }else{
+                    let _solana = {
+                        phantom: {
+                            name: walletName,
+                            address: publicKey
+                        }
+                    };
+                    sessionStorage.setItem('solana', JSON.stringify(_solana));
+                }
+
+                const signer = {
+                    publicKey,
+                    signTransaction: async (transaction) => {
+                        const signedTransaction = await provider.signTransaction(transaction);
+                        return signedTransaction;
+                    },
+                };
+                setConnected(true);   
+                setConnectionStatus(true);
+            }catch(error){
+                setConnectionStatus(false);
+                console.log("Phantom wallet connect error: ",error);
+            }
+        } else {
+          console.log('Phantom wallet not detected');
+        }
+    };
+
+    const connectToKeplr = async() => {
+        if (window.keplr) {
+            try {
+                await window.keplr.enable("cosmoshub-3");
+                const keplrOfflineSigner = window.getOfflineSigner("cosmoshub-3");
+                const accounts = await keplrOfflineSigner.getAccounts();
+                const [{ address }] = accounts;
+                const keplrSigner = {
+                    async sign(signBytes) {
+                        const { signature } = await keplrOfflineSigner.sign(address, makeSignDoc(signBytes));
+                        return signature;
+                    },
+                    async getAccounts() {
+                        return accounts;
+                    },
+                    async getAddress() {
+                        return address;
+                    },
+                };
+                const kpWallet = await keplrSigner.getAddress();
+                const cosmos = sessionStorage.getItem('cosmos');
+                if(cosmos){
+                    let _cosmos = JSON.parse(cosmos);
+                    _cosmos.keplr = {
+                        name: walletName,
+                        address: kpWallet
+                    };
+                    sessionStorage.setItem('cosmos', JSON.stringify(_cosmos));
+                }else{
+                    let _cosmos = {
+                        keplr: {
+                            name: walletName,
+                            address: kpWallet
+                        }
+                    };
+                    sessionStorage.setItem('cosmos', JSON.stringify(_cosmos));
+                }
+                setConnectionStatus(true);
+            } catch (error) {
+                setConnectionStatus(false);
+                console.error(error);
+            }
+        } else {
+            console.error("Please install Keplr wallet extension");
+        }
+    };
+
+    const connectBraavosWallet = async () => {
+        try {
+            await braavosWalletConnector.activate();
+            const braavosWallet = braavosWalletConnector.getConnectedAddress();
+            if(!braavosWallet){
+                return;
+            }
+            setBraavosWallet(braavosWallet);
+            const starknet = sessionStorage.getItem('starknet');
+            if(starknet){
+                let _starknet = JSON.parse(starknet);
+                _starknet.braavos = {
+                    name: walletName,
+                    address: braavosWallet
+                };
+                sessionStorage.setItem('starknet', JSON.stringify(_starknet));
+            }else{
+                let _starknet = {
+                    braavos: {
+                        name: walletName,
+                        address: braavosWallet
+                    }
+                };
+                sessionStorage.setItem('starknet', JSON.stringify(_starknet));
+            }
+            setConnectionStatus(true);
+        } catch (error) {
+            setConnectionStatus(false);
+            console.error(error);
+        }
+    };
+
     useEffect(() => {
-        checkWallets();
+        setSelectedId(networkList[0].id);
+        initWallets(evmNet);
         // phantomCheck();
     }, []);
     return (
@@ -345,34 +599,43 @@ const WalletDetail = () => {
                                                 <label>Select Network</label>
                                                 <Dropdown className="">
                                                     <Dropdown.Toggle variant="default" id="connectedwalletsaction1">
-                                                        <span className="img"><img src={DropdownImage} /></span> Solana
+                                                        {selectedNetworkIndex == -1 ? <span>Select Network</span> : <React.Fragment><span className="img"><img src={networkList[selectedNetworkIndex].image} /></span> {networkList[selectedNetworkIndex].name}</React.Fragment>}
                                                     </Dropdown.Toggle>
-
                                                     <Dropdown.Menu>
-                                                        <li><Dropdown.Item to="#"><span className="img"><img src={DropdownImage} /></span> Solana</Dropdown.Item></li>
-                                                        <li><Dropdown.Item to="#"><span className="img"><img src={DropdownImage} /></span> Solana</Dropdown.Item></li>
+                                                        {networkList.map((network, i) => {
+                                                            return(
+                                                                <li key={i}>
+                                                                    <Dropdown.Item onClick={()=>selectModalNetwork(i)} ><span className="img"><img src={network.image} /></span> {network.name}</Dropdown.Item>
+                                                                </li>
+                                                            )
+                                                        })}
                                                     </Dropdown.Menu>
                                                 </Dropdown>
+
                                             </div>
                                             <div className="form-group">
                                                 <label>Select the wallet</label>
                                                 <Dropdown className="">
                                                     <Dropdown.Toggle variant="default" id="connectedwalletsaction1">
-                                                        <span className="img"><img src={DropdownImage} /></span> Solana
+                                                        {selectedWallet? <React.Fragment><span className="img"><img className="max-width-20" src={selectedWallet.image} /></span> {selectedWallet.name} </React.Fragment>: <span>Select Wallet</span>}
                                                     </Dropdown.Toggle>
-
                                                     <Dropdown.Menu>
-                                                        <li><Dropdown.Item to="#"><span className="img"><img src={DropdownImage} /></span> Solana</Dropdown.Item></li>
-                                                        <li><Dropdown.Item to="#"><span className="img"><img src={DropdownImage} /></span> Solana</Dropdown.Item></li>
+                                                    {modalWalletList.map((wallet, i) => {
+                                                        return(
+                                                            <li key={i}>
+                                                                <Dropdown.Item onClick={()=>selectModalWallet(i)} ><span className="img"><img className="max-width-20" src={wallet.image} /></span> {wallet.name}</Dropdown.Item>
+                                                            </li>
+                                                        )
+                                                    })}
                                                     </Dropdown.Menu>
                                                 </Dropdown>
                                             </div>
                                             <div className="form-group">
                                                 <label>Name wallet</label>
-                                                <input type="text" className="form-control" />
+                                                <input type="text" name="wallet-name" className="form-control" value={walletName} onChange={onInputChange} />
                                             </div>
                                             <div className="btn-container">
-                                                <a className="btn btn-primary w-100" onClick={handleClose}>Confirm</a>
+                                                <a className="btn btn-primary w-100" onClick={walletConnectConfirm}>Confirm</a>
                                             </div>
                                         </Modal.Body>
                                     </Modal>

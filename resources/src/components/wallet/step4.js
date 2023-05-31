@@ -1,6 +1,5 @@
 import React from 'react';
 import NYMImage from "../../assets/img/nym.png";
-
 const Step4 = () => {
     return (
         <div className="steps-content step4">
