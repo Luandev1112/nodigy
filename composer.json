@@ -47,7 +47,8 @@
             "Database\\Seeders\\": "database/seeders/"
         },
         "files": [
-            "app/helpers.php"
+            "app/helpers.php",
+            "app/libraries/hetzner/vendor/autoload.php"
         ]
     },
     "autoload-dev": {

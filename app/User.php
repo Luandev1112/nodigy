@@ -17,13 +17,16 @@ class User extends Authenticatable
     const ACTIVE = 1;
     const INACTIVE = 0;
 
+    const ADMIN = 1;
+    const USER = 2;
+
     public static $status = [
         1 => 'Active',
-        0 => 'Deactive',
+        0 => 'Inactive',
     ];
     public static $role = [
-        1 => 'Admin',
-        2 => 'User',
+        1 => 'Super Admin',
+        2 => 'Client',
     ];
 
     /**
@@ -56,5 +59,10 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new ResetPasswordNotification($token));
+    }
+
+    public function getUserID()
+    {
+        return $this->id+1000000000;
     }
 }

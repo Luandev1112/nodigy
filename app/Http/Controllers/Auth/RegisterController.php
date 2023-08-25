@@ -63,7 +63,7 @@ class RegisterController extends Controller
         $rules = array(
             'email' => ['required','string','email','regex:/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix',
             Rule::unique('users')->where(function($query) use($request){
-                return $query->where('is_verify',1)->where('email',$request->email);
+                return $query->where('role_type',User::USER)->where('is_verify',1)->where('email',$request->email);
             })],
             'password' => 'required|string|min:8|confirmed',
             'password_confirmation' => 'required',            
@@ -71,7 +71,7 @@ class RegisterController extends Controller
         );        
         $request->validate($rules);
         
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->where('role_type',User::USER)->first();
         if(!isset($user->id)){
             $user = new User();
         }
@@ -122,7 +122,7 @@ class RegisterController extends Controller
                 $nowTime = Carbon::now()->timestamp;
                 
                 $register_email = session()->get('register_email',"");
-                $user = User::where('email', $register_email)->where('otp_code', $request->otp_code)->first();
+                $user = User::where('email', $register_email)->where('otp_code', $request->otp_code)->where('role_type',User::USER)->first();
                 if(isset($user->id) && $user->otp_code)
                 {
                     if($user->otp_valid_time > $nowTime)
@@ -153,7 +153,7 @@ class RegisterController extends Controller
     public function resendOtpAuthentication(Request $request){
         if($request->ajax()) {
             $register_email = session()->get('register_email',"");
-            $user = User::where('email', $register_email)->first();
+            $user = User::where('email', $register_email)->where('role_type',User::USER)->first();
             if(isset($user->id))
             {                
                 $otp_code = getOtpCodeUser();                

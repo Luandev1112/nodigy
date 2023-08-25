@@ -1,13 +1,45 @@
 import React, {useEffect, useState} from 'react';
+import { Button, Dropdown, Form, Modal } from 'react-bootstrap';
+import IconEmptyWallet from "../../assets/img/icon-empty-wallet.png";
+import Http from "../../utils/Http";
+import Web3Modal, { providers } from 'web3modal';
+import {ethers} from 'ethers';
+import { Connection, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+import { BraavosConnector } from '@web3-starknet-react/braavos-connector';
+import TronWeb from 'tronweb';
+import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
 
-const TopupAccount = ({setStep, setSubStep, setMyValance, valanceType}) => {
+const TopupAccount = ({setStep, setSubStep, setMyBalance, balanceType}) => {
     const [cardNumber, setCardNumber] = useState('1234 5678 89012 3456');
     const [cardHolder, setCardHolder] = useState('JOHN DOE');
     const [expirationDate, setExpirationDate] = useState('02 / 2024');
     const [cvv, setCVV] = useState('111');
     const [amountFrom, setAmountFrom] = useState('301 000 000');
-    const [amountTo, setAmountTo] = useState(301.001);
+    const [amountTo, setAmountTo] = useState(29.01);
     const [tabType, setTabType] = useState('card');
+    const [networkList, setNetworkList] = useState([]);
+    const [selectedNetwork, setSelectedNetwork] = useState(null);
+    const [walletList, setWalletList] = useState([]);
+    const [selectedWallet, setSelectedWallet] = useState(null);
+    const [connectedWallet, setConnectedWallet] = useState(null);
+    const [loadig, setLoading] = useState(false);
+    const [connectionStatus, setConnectionStatus] = useState(false);
+    const [walletPrice, setWalletPrice] = useState(0);
+    const [walletInstalled, setWalletInstalled] = useState(false);
+    const [maxToken, setMaxToken] = useState(0);
+    const mediaUrl = "https://static.nodigy.com/";
+
+    const web3Modal = typeof window !== 'undefined' && new Web3Modal({ cacheProvider: true });
+    const braavosWalletConnector = new BraavosConnector({ supportedChainIds: [1,5] });
+
+    // TronLink transaction constant settings
+    // const contractWalletAddress = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+    const contractWalletAddress = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";
+    const receiverAddress = "TJ4jSwMBREYysPQcjATTy52AXdXrdVXhM2";
+    // const receiverAddress = "TCPnqhNozXMaY4gFxvLWKS26FmPhDHvWvD";
+    const transactionUrl = "https://nile.tronscan.io/#/transaction/";
+
+
     const handleChange = (e) => {
         e.preventDefault();
         const name = e.target.name;
@@ -31,31 +63,102 @@ const TopupAccount = ({setStep, setSubStep, setMyValance, valanceType}) => {
             case 'amount_to':
                 setAmountTo(value);
             break;
+            case 'wallet_price':
+                setWalletPrice(value);
+            break;
         }
     }
 
     const changeTabType = (type) => {
-        console.log(type)
         setTabType(type);
     }
 
-    const handleDeposit = () => {
-        setMyValance(amountTo);
-        console.log(valanceType);
-        switch(valanceType) {
+    const handleDeposit = async() => {
+        setMyBalance(amountTo);
+        switch(balanceType) {
             case 'server':
-                setSubStep('deposit-success');
-                setStep(5);    
+                if(tabType == 'card') {
+                    // paymentByCard();
+                    // setSubStep('deposit-success');
+                    // setStep(5);
+                }else if(tabType == 'crypto') {
+                    console.log(typeof walletPrice);
+                    await paymentByWallet();
+                    setSubStep('deposit-success');
+                    setStep(5);
+                }
+                    
             break;
             case 'deposit':
                 setSubStep('deposit-success');
                 setStep(7);
             break;
+        }
+    }
+
+    const paymentByCard = async() => {
+        const formData = new FormData();
+        formData.append('card_number', cardNumber);
+        formData.append('card_holder', cardHolder);
+        formData.append('expiration_date', expirationDate);
+        formData.append('cvv', cvv);
+        formData.append('amount_from', amountFrom);
+        formData.append('amount_to', amountTo);
+        const result = await Http.post('admin/api/cardPayment', formData);
+        if(result.data.user){
+            const _myBalance = result.data.user.balance;
+            setMyBalance(_myBalance);
+        }
+    }
+
+    const paymentByWallet = async() => {
+        if(typeof walletPrice*1 != 'NaN' && walletPrice < maxToken) {
+            if(selectedWallet.supp_wallet_name.toLowerCase() == 'tronlink')
+            {
+                const tronWeb = window.tronWeb;
+
+                var senderAddress = connectedWallet.address;
+                var _amount = walletPrice * 1000000;
+
+                var parameter = [{type:'address',value:receiverAddress},{type:'uint256',value:_amount}];
+                var options = {
+                    feeLimit:100000000                    
+                };
+
+                const transactionObject = await tronWeb.transactionBuilder.triggerSmartContract(
+                    tronWeb.address.toHex(contractWalletAddress), 
+                    "transfer(address,uint256)", 
+                    options, 
+                    parameter,
+                    tronWeb.address.toHex(senderAddress)
+                );
+
+                var signedTransaction = await tronWeb.trx.sign(transactionObject.transaction);
+                var broadcastTransaction = await tronWeb.trx.sendRawTransaction(signedTransaction);
+                console.log("broadcast transaction: ", broadcastTransaction);
+                if(broadcastTransaction.result){
+                    const _transactionId = broadcastTransaction.txid;
+                    console.log("transaction time : ", broadcastTransaction.transaction.raw_data.timestamp);
+                    
+                    const formData = new FormData();
+                    formData.append('wallet_name', connectedWallet.name);
+                    formData.append('amount', walletPrice);
+                    formData.append('wallet_address', connectedWallet.address);
+                    formData.append('transaction_id', _transactionId);
+                    formData.append('success', 1);
+                    formData.append('date', broadcastTransaction.transaction.raw_data.timestamp);
+                    const result = await Http.post('admin/api/walletPayment', formData);
+                    if(result.data.user){
+                        const _myBalance = result.data.user.balance;
+                        setMyBalance(_myBalance);
+                    }   
+                }
+            }
         }
     }
 
     const handleDepositFail = () => {
-        switch(valanceType) {
+        switch(balanceType) {
             case 'server':
                 setSubStep('deposit-fail');
                 setStep(5);    
@@ -66,6 +169,284 @@ const TopupAccount = ({setStep, setSubStep, setMyValance, valanceType}) => {
             break;
         }
     }
+
+    const getNetworks = async () => {
+        try{
+            const res = await Http.get('/admin/api/getNetworks');
+            if(res.data.length > 0){
+                setNetworkList(res.data);  
+                // initWallets(res.data[0]);
+            }
+        }catch(err){
+            console.log("Network List error");
+        }
+    }
+
+    const selectNetwork = async (indexId) => {
+        const networkId = networkList[indexId].id;
+        setSelectedNetwork(networkList[indexId]);
+        try{
+            const res = await Http.get('/admin/api/getNetworkWallets/'+networkId);
+            if(res.data.length > 0){
+                setWalletList(res.data);
+                setSelectedWallet(null);
+            }
+        }catch(err){
+            
+        }
+    }
+
+    const changeWallet = async(idx) => {
+        const _selectedWallet = walletList[idx];
+        switch(_selectedWallet.supp_wallet_name.toLowerCase())
+        {
+            case 'tronlink':
+                if (typeof window.tronWeb !== 'undefined') {
+                    setWalletInstalled(true);
+                } else {
+                    setWalletInstalled(false);
+                }
+            break;
+        }
+        console.log("_selected wallet : ", _selectedWallet);
+        setSelectedWallet(_selectedWallet);
+
+    }
+
+    const walletConnect = async () => {
+        const walletName = selectedWallet.supp_wallet_name;
+        switch(walletName.toLowerCase()){
+            case 'metamask':
+                await metamaskConnect();
+            break;
+            case 'phantom':
+                await connectPhantomWallet();
+            break;
+            case 'keplr':
+                await connectToKeplr();
+            break;
+            case 'braavos':
+                await connectBraavosWallet();
+            break;
+            case 'tronlink':
+                await connectTron();
+            break;
+        }
+    }
+
+    const metamaskConnect = async () => {
+        try {
+            setLoading(true);
+            checkIfExtensionIsAvailable();
+            const connection = web3Modal && (await web3Modal.connect());
+            const provider = new ethers.providers.Web3Provider(connection);
+            await subscribeProvider(connection);
+            setMetamaskAddress(provider);
+            setLoading(false);
+            setConnectionStatus(true);
+        } catch (error) {
+            console.log(error);
+            setLoading(false);
+            setConnectionStatus(false);
+            // console.log("Got this error on connectToWallet catch block while connecting the wallet");
+        }
+    };
+
+    const checkIfExtensionIsAvailable = () => {
+        if (
+            (window && window.web3 === undefined) ||
+            (window && window.ethereum === undefined)
+        ) {
+            setError(true);
+            web3Modal && web3Modal.toggleModal();
+        }
+    }; 
+
+    const subscribeProvider = async (connection) => {
+        connection.on('close', () => {
+            disconnectWallet('MetaMask');
+        });
+        connection.on('accountsChanged', async (accounts) => {
+            if(accounts.length) {
+                const provider = new ethers.providers.Web3Provider(connection);
+                getBalance(provider, accounts[0]);
+            }else{
+                disconnectWallet('MetaMask');
+            }
+        })
+    }
+
+    const setMetamaskAddress = async (provider) => {
+        try {
+            const signer = provider.getSigner();
+            if(signer) {
+                const web3Address = await signer.getAddress();
+                const _connectedWallet = {
+                    'name' : "MetaMask",
+                    'address' : web3Address,
+                    'logo' : selectedWallet.wallet_logo
+                }
+                setConnectedWallet(_connectedWallet);
+                getBalance(provider, web3Address);
+            }
+        } catch (error) {
+            setConnectionStatus(false);
+            console.log("Account not connected; logged from setWalletAddress function");
+        }
+    }
+
+    const getBalance = async (provider, walletAddress) => {
+        const walletBalance = await provider.getBalance(walletAddress);
+        const balanceInEth = ethers.utils.formatEther(walletBalance);
+    }
+
+    const disconnectWallet = (walletName) => {
+        setConnectedWallet(null);
+        switch(walletName) {
+            case 'MetaMask':
+                web3Modal && web3Modal.clearCachedProvider();
+            break;
+        }
+   
+    }
+
+    const shortenAddress = (address) => {
+        let newString = address.substr(0 , 5) + "..." + address.substr(-5, 5);
+        return newString;
+    }
+
+    const connectPhantomWallet = async () => {
+        if (window.solana && window.solana.isPhantom) {
+            try{
+                const connection = new Connection('https://api.mainnet-beta.solana.com');
+                const provider = window.solana;
+                await provider.connect();
+                const publicKey = await provider.publicKey.toString();
+                const signer = {
+                    publicKey,
+                    signTransaction: async (transaction) => {
+                        const signedTransaction = await provider.signTransaction(transaction);
+                        return signedTransaction;
+                    },
+                }; 
+                setConnectionStatus(true);
+                const _connectedWallet = {
+                    'name' : "Phantom",
+                    'address' : publicKey,
+                    'logo' : selectedWallet.wallet_logo
+                }
+                setConnectedWallet(_connectedWallet);
+            }catch(error){
+                setConnectionStatus(false);
+                console.log("Phantom wallet connect error: ",error);
+            }
+        } else {
+          console.log('Phantom wallet not detected');
+        }
+    };
+
+    const connectToKeplr = async() => {
+        if (window.keplr) {
+            try {
+                await window.keplr.enable("cosmoshub-3");
+                const keplrOfflineSigner = window.getOfflineSigner("cosmoshub-3");
+                const accounts = await keplrOfflineSigner.getAccounts();
+                const [{ address }] = accounts;
+                const keplrSigner = {
+                    async sign(signBytes) {
+                        const { signature } = await keplrOfflineSigner.sign(address, makeSignDoc(signBytes));
+                        return signature;
+                    },
+                    async getAccounts() {
+                        return accounts;
+                    },
+                    async getAddress() {
+                        return address;
+                    },
+                };
+                const kpWallet = await keplrSigner.getAddress();
+                const _connectedWallet = {
+                    'name' : "Keplr",
+                    'address' : kpWallet,
+                    'logo' : selectedWallet.wallet_logo
+                }
+                setConnectedWallet(_connectedWallet);
+                setConnectionStatus(true);
+            } catch (error) {
+                setConnectionStatus(false);
+                console.error(error);
+            }
+        } else {
+            console.error("Please install Keplr wallet extension");
+        }
+    }
+
+    const connectBraavosWallet = async () => {
+        try {
+            await braavosWalletConnector.activate();
+            const braavosWallet = braavosWalletConnector.getConnectedAddress();
+            if(!braavosWallet){
+                return;
+            }
+            const _connectedWallet = {
+                'name' : "Braavos",
+                'address' : braavosWallet,
+                'logo' : selectedWallet.wallet_logo
+            }
+            setConnectedWallet(_connectedWallet);
+            setConnectionStatus(true);
+        } catch (error) {
+            setConnectionStatus(false);
+            console.error(error);
+        }
+    }
+
+    const connectTron = async() => {
+        if(window.tronWeb){
+            const wtronweb = window.tronWeb;
+            const adapter = new TronLinkAdapter();
+            // connect
+            await adapter.connect();
+            try {
+                const message = 'Wallet connection';
+                await adapter.signMessage(message);
+                if(window.tronWeb.ready) {
+                    const _walletAddress = adapter.address;
+                    const _connectedWallet = {
+                        'name' : "TronLink",
+                        'address' : _walletAddress,
+                        'logo' : selectedWallet.wallet_logo
+                    };
+                    setConnectedWallet(_connectedWallet);
+                    setConnectionStatus(true);
+                    
+                    const { abi } = await wtronweb.trx.getContract(contractWalletAddress);
+                    const usdtContract = wtronweb.contract(abi.entrys, contractWalletAddress);
+                    const balance = await usdtContract.methods.balanceOf(_walletAddress).call();
+                    const walletBalance = Number(balance) / 1000000;
+                    setMaxToken(walletBalance);
+                }
+            } catch (error) {
+                
+            }
+        }else{
+            alert("Please install TronLink Wallet");
+        }
+        
+        // const targetAddress = "TCPnqhNozXMaY4gFxvLWKS26FmPhDHvWvD";
+        // // create a send TRX transaction
+        // const unSignedTransaction = await tronWeb.transactionBuilder.sendTrx(targetAddress, 10, adapter.address);
+        // // using adapter to sign the transaction
+        // const signedTransaction = await adapter.signTransaction(unSignedTransaction);
+        // // broadcast the transaction
+        // const transactionResult = await tronWeb.trx.sendRawTransaction(signedTransaction);
+        // console.log(transactionResult);
+
+    }
+
+    useEffect(() => {
+        getNetworks();
+    }, []);
 
     return (
         <div className="steps-content fullwidthcontainer fiatscreen step5">
@@ -132,41 +513,91 @@ const TopupAccount = ({setStep, setSubStep, setMyValance, valanceType}) => {
                                         tabType == 'crypto' &&
                                         <div role="tabpanel" className="" id="crypto">
                                             <div className="form-group">
-                                                <div className="dropdown dropdown-currency">
-                                                    <button className="btn btn-default dropdown-toggle" type="button" id="dropdown-currency" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"><img src="/img/country-img.png" /> BNB Chain <span className="caret"></span></button>
-                                                    <ul className="dropdown-menu" aria-labelledby="dropdown-currency">
-                                                        <li><a href="#"><img src="/img/country-img.png" /> BNB Chain</a></li>
-                                                    </ul>
-                                                </div>
+                                                <Dropdown className="dropdown-currency">
+                                                    <Dropdown.Toggle variant="default" id="">
+                                                        {
+                                                            selectedNetwork ?
+                                                            <React.Fragment>
+                                                                <img src={mediaUrl+"network_logo/" + selectedNetwork.network_logo} /> {selectedNetwork.network_name}
+                                                                <span className="caret"></span>
+                                                            </React.Fragment> :
+                                                            <React.Fragment>
+                                                                <a>Please select network</a>
+                                                                <span className="caret"></span>
+                                                            </React.Fragment>
+                                                        }
+                                                    </Dropdown.Toggle>
+
+                                                    <Dropdown.Menu>
+                                                    {
+                                                        networkList.length > 0 && networkList.map((network, i) => {
+                                                            return(
+                                                                <li key={i}>
+                                                                    <Dropdown.Item onClick={()=>selectNetwork(i)}><img src={mediaUrl+"network_logo/" + network.network_logo} /> { network.network_name }</Dropdown.Item>
+                                                                </li>
+                                                            )
+                                                        })
+                                                    }
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
                                             </div>
+
                                             <div className="form-group">
                                                 <label>Source wallet</label>
-                                                <div className="dropdown dropdown-currency">
-                                                    <button className="btn btn-default dropdown-toggle" type="button" id="dropdown-currency" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"><img src="/img/country-img.png" /> MetaMask <a className="anchortext" href="#">Install wallet</a> <span className="caret"></span></button>
-                                                    <ul className="dropdown-menu" aria-labelledby="dropdown-currency">
-                                                        <li><a href="#"><img src="/img/country-img.png" /> BNB Chain</a></li>
-                                                    </ul>
-                                                </div>
+                                                <Dropdown className='dropdown-currency'>
+                                                    <Dropdown.Toggle variant="default" id="dropdown-currency">
+                                                        {selectedWallet ?
+                                                            <React.Fragment>
+                                                                <img src={mediaUrl+"wallet_logo/"+selectedWallet.wallet_logo} /> {selectedWallet.supp_wallet_name}
+                                                                {walletInstalled?'':<a className="anchortext mx-3" href="#">Install wallet</a>}
+                                                                <span className="caret"></span>
+                                                            </React.Fragment> :
+                                                            <React.Fragment>
+                                                                <a className="">Please select wallet</a>
+                                                                <span className="caret"></span>
+                                                            </React.Fragment>
+                                                        }
+                                                    </Dropdown.Toggle> 
+                                                    <Dropdown.Menu>
+                                                    {
+                                                        walletList.length > 0 && walletList.map((wallet, i) => {
+                                                            return (
+                                                                <li key={i}>
+                                                                    <Dropdown.Item onClick={()=>changeWallet(i)}>
+                                                                        <img src={mediaUrl+"wallet_logo/"+wallet.wallet_logo} /> {wallet.supp_wallet_name}
+                                                                    </Dropdown.Item>   
+                                                                </li>
+                                                            )
+                                                        })
+                                                    }
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
                                             </div>
                                             <div className="btn-container">
-                                                <button type="button" className="btn btn-primary btn-new btn-gray width100">Connect</button>
+                                                <button type="button" className="btn btn-primary btn-new btn-gray width100" onClick={()=>walletConnect()}>Connect</button>
                                             </div>
                                             <div className="disconnectaccount item border-left">
-                                                <div className="icon"><img src="/img/step3-img1.png" /></div>
-                                                <div className="text">
-                                                    <p>0x35s1dg...fsdf1dfg5224 <a href="#"><img src="/img/icon-copy.svg" /></a></p>
-                                                    <div className="link-disconnect"><a href="#"><img src="/img/icon-close-circle.svg" />Disconnect</a></div>
-                                                </div>
+                                                {
+                                                    connectedWallet ? 
+                                                    <React.Fragment>
+                                                        <div className="icon"><img src={mediaUrl+"wallet_logo/" + connectedWallet.logo} /></div>
+                                                        <div className="text">
+                                                            <p>{shortenAddress(connectedWallet.address)}</p>
+                                                            <div className="link-disconnect"><a className="btn-disconect" onClick={()=>disconnectWallet(connectedWallet.name)}><img src="/img/icon-close-circle.svg" />Disconnect</a></div>
+                                                        </div>
+                                                    </React.Fragment> :
+                                                    <React.Fragment>  </React.Fragment>
+                                                }
                                             </div>
                                             <div className="n_r_form_field">
-                                                <p>85 485.56 $NYM <span>MAX</span></p>
+                                                <p>{maxToken} $USDT <span>MAX</span></p>
                                                 <div className="form-group">
-                                                    <span>$NYM</span>
-                                                    <input type="text" className="form-control" defaultValue="10" />
+                                                    <span>$USDT</span>
+                                                    <input type="text" className="form-control" name="wallet_price" onChange={handleChange} value={walletPrice} />
                                                 </div>
                                             </div>
                                             <div className="btn-container">
-                                                <input onClick={()=>handleDeposit()} type="button" className="btn btn-primary btn-new width100" defaultValue="Deposit" />
+                                                <button onClick={()=>handleDeposit()} type="button" className="btn btn-primary btn-new width100" >Deposit</button>
                                             </div>
                                         </div>
                                     }

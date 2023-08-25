@@ -1,21 +1,52 @@
 import React, {useState, useEffect} from 'react';
-import nodeList from "../../data/wallet/nodeList.json";
-const Step2 = () => {
-    const [nodes, setNodes] = useState(nodeList);
+import Http from "../../utils/Http";
+import { id } from 'ethers/lib/utils';
+const Step2 = ({chooseProject, project}) => {
     const [networkType, setNetworkType] = useState('all');
-    const filterByNet = (netType) => {
+    const [projects, setProjects] = useState([]);
+    const [selectedProject, setSelectedProject] = useState(null);
+    const [selectedId, setSelectedId] = useState(0);
+    const [isReadMore, setIsReadMore] = useState(true);
+    const mediaUrl = "https://static.nodigy.com/";
+
+    const filterByNet = async(netType) => {
         setNetworkType(netType);
-        let filterdNodes = [];
-        if(netType == 'all'){
-            filterdNodes = nodeList;
-        }else{
-            filterdNodes = nodeList.filter(node => node.type == netType);
-        }
-        setNodes(filterdNodes);
+        const formData = new FormData();
+        formData.append('network_type', netType);
+        const result = await Http.post('/admin/api/filterNetworkProjects', formData);
+        setProjects(result.data.projectlist);
     };
+
+    const selectProject = (idx) => {
+        const _selectedProject = projects[idx];
+        setSelectedProject(_selectedProject);
+        setSelectedId(_selectedProject.id);
+        chooseProject(_selectedProject);
+    }
+
+    const getProjects = async() => {
+        const _projects = await Http.get('admin/api/getAllProjects');
+        setProjects(_projects.data.projectlist);
+    }
+
+    const selectReadMore = (idx) => {
+        console.log("idx", idx);
+        let _projects = [...projects];
+        if(_projects[idx].readmore) {
+            _projects[idx].readmore = false;
+        }else{
+            _projects[idx].readmore = true;
+        }
+        setProjects(_projects);
+    }
+
     useEffect(()=>{
-        // filterByNet('all');
-    });
+        getProjects();
+        if(project){
+            setSelectedId(project.id);
+        }
+    }, []);
+
     return (
         <div className="steps-content step-new step2 step2new">
             <div className="container">
@@ -31,31 +62,31 @@ const Step2 = () => {
                 </div>
                 <div className="borerbox">
                     <div className="row">
-                        {nodes.map((node, i) => {
+                        {projects.length > 0 && projects.map((project, i) => {
                             return(
                                 <div className="col-sm-6" key={i}>
-                                    <div className="items item1 border-up">
+                                    <div className={ selectedId == project.id ? "items item1 border-up checked" : "items item1 border-up"} onClick={()=>selectProject(i)}>
                                         <div className="innerbox transparentbg">
                                             <div className="box-head">
-                                                <div className="img"><img src={node.image} /></div>
-                                                <div className="name">{node.name}</div>
-                                                {node.type == 'main' && <div className="tag"><span className="mainnet">Mainnet</span></div>}
-                                                {node.type == 'test' && <div className="tag"><span className="testnet">Testnet</span></div>}
+                                                <div className="img"><img src={mediaUrl + 'project_image/'+project.image} /></div>
+                                                <div className="name">{project.project_name}</div>
+                                                {project.type == 'main' && <div className="tag"><span className="mainnet">Mainnet</span></div>}
+                                                {project.type == 'test' && <div className="tag"><span className="testnet">Testnet</span></div>}
                                             </div>
                                             <div className="box-content">
-                                                <p>{node.description}<a href="#">Learn more...</a></p>
+                                                <p>{ project.readmore==true ? project.description.slice(0, 100)+"..." : project.description }<a className="read-or-hide" onClick={() => selectReadMore(i)}> { project.readmore ? "Learn more..." : "Show less"}</a></p>
                                                 <div className="minstake">
                                                     <table>
                                                         <tbody>
                                                             <tr>
                                                                 <td>Min stake:</td>
-                                                                <td className="text-right">{node.min_stake}</td>
+                                                                <td className="text-right">{project.min_stake}</td>
                                                             </tr>
                                                             <tr>
-                                                                <td colSpan="2" className="text-right">~ {node.min_price}</td>
+                                                                <td colSpan="2" className="text-right">~ {project.min_price}</td>
                                                             </tr>
                                                             <tr>
-                                                                <td colSpan="2" className="text-right"><span className="setupfee">Setup fee  ~ {node.setup_fee}</span></td>
+                                                                <td colSpan="2" className="text-right"><span className="setupfee">Setup fee  ~ {project.setup_fee}</span></td>
                                                             </tr>
                                                         </tbody>
                                                     </table>

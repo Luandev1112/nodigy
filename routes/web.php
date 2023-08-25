@@ -31,13 +31,15 @@ Route::post('verify-otp-authentication', 'Auth\RegisterController@verifyOtpAuthe
 Route::get('resend-otp-authentication', 'Auth\RegisterController@resendOtpAuthentication')->name('resend-otp-authentication');
 
 Route::post('email-subscription', 'SubscriptionController@emailSubscribes')->name('email-subscription');
-Route::get('subscription/verify/{token}','SubscriptionController@verifyEmailSubscribes')->name('verify.email.subscription'); 
+Route::get('subscription/verify/{token}','SubscriptionController@verifyEmailSubscribes')->name('verify.email.subscription');
 
 Route::post('subscribe/news', 'SubscriptionController@subscribeNews')->name('subscribe.news');
-Route::get('subscribe/news/verify/{token}','SubscriptionController@verifysubscribeNews')->name('subscribe.news.verify'); 
+Route::get('subscribe/news/verify/{token}','SubscriptionController@verifysubscribeNews')->name('subscribe.news.verify');
 
-Route::get('web3projects','ProjectController@index')->name('web3projects'); 
-Route::get('presskit','PresskitController@index')->name('presskit'); 
+Route::get('web3projects','ProjectController@index')->name('web3projects');
+Route::post('web3projects/getlist','ProjectController@getlist')->name('web3projects.getlist');
+
+Route::get('presskit','PresskitController@index')->name('presskit');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', 'DashboardController@index')->name('dashboard');
@@ -55,7 +57,40 @@ Route::get('/clear', function () {
 });
 
 // topdev -- 2023-4-3 --
-Route::get('admin/getuser','DashboardController@getUser'); 
+Route::get('admin/getuser','DashboardController@getUser');
+Route::get('admin/getTestUser', 'DashboardController@getTestUser');
+
+// Api Routes
+Route::get('admin/api/getNetworks', 'API\WalletController@getNetworks');
+Route::get('admin/api/getNetworkWallets/{network_id}', 'API\WalletController@getNetworkWallets');
+Route::post('admin/api/saveUserWallet', 'API\WalletController@saveUserWallet');
+Route::get('admin/api/getUserNetworkWallets/{network_id}', 'API\WalletController@getUserNetworkWallets');
+Route::get('admin/api/deleteUserWallet/{wallet_id}', 'API\WalletController@deleteUserWallet');
+Route::get('admin/api/getAddedUserWallets', 'API\WalletController@getAddedUserWallets');
+
+Route::get('admin/api/getAllProjects', 'API\WalletConnectionController@getAllProjects');
+Route::post('admin/api/filterNetworkProjects', 'API\WalletConnectionController@filterNetworkProjects');
+
+Route::get('admin/api/getAllServers', 'API\WalletConnectionController@getAllServers');
+
+Route::post('admin/api/cardPayment', 'API\WalletConnectionController@cardPayment');
+Route::post('admin/api/walletPayment', 'API\WalletConnectionController@walletPayment');
+Route::get("admin/api/getUserTransaction", "API\WalletConnectionController@userTransaction");
+
+Route::post('admin/api/purchaseServer', 'API\WalletConnectionController@purchaseServer');
+Route::get('admin/api/getWalletList', 'API\WalletConnectionController@getWalletList');
+
+Route::get('admin/api/getChainList', 'API\WalletConnectionController@getChainlist');
+Route::get('admin/api/getInitialNode', 'API\WalletConnectionController@getInitialNode');
+
+Route::post('admin/api/createNode', 'API\WalletConnectionController@createNode');
+Route::get('admin/api/checkeInstalledWallets', 'API\WalletConnectionController@checkeInstalledWallets');
+
+Route::post('admin/api/userWallet/edit', 'API\WalletConnectionController@editUserWallet');
+
+// NYM APIs
+Route::get('api/nym/getInitialNode', 'API\NYMController@getInitialNode');
+
 
 Route::get( '/{any}', function () {
     return view('app');

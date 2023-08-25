@@ -10,12 +10,40 @@ import IconSettingsImage from "../../assets/img/icon-setings.png";
 import IconLogoutImage from "../../assets/img/icon-setings.png";
 import ArrowUpImage from "../../assets/img/arrow-narrow-up.png";
 import FortaDropdownImage from '../../assets/img/forte-dropdown-img.png';
+import Http from "../../utils/Http";
 
-const HeaderTopBar = ({menu}) => {
+const HeaderTopBar = ({menu, myBalance}) => {
     const [darkMode, setDarkMode] = useState(true);
     const changeMode = () => {
         darkMode ? setDarkMode(false) : setDarkMode(true);
     }
+    const [user, setUser] = useState(null);
+    const [userBalance, setUserBalance] = useState(0);
+
+    console.log("My balance : ", myBalance);
+
+    const getUser = async() => {
+      try{
+          const res = await Http.get('/admin/getuser');
+          if(res.data) {
+            setUser(res.data);
+            setUserBalance(res.data.balance);
+          }
+      }catch(err){
+         console.log("error:::", err);
+      }
+    }
+
+    useEffect(()=>{
+      getUser();
+    }, []);
+
+    useEffect(()=>{
+      if(myBalance >= 0){
+        setUserBalance(myBalance);
+      }
+    }, [myBalance]);
+
     return (
         <div className="pagetitle">
             <div className="mobilenavicon hide-desktop"><img src={NavIcon} /></div>
@@ -51,16 +79,11 @@ const HeaderTopBar = ({menu}) => {
             }
 
             <div className="actionright">
-                <Dropdown className="walletdropdown">
-                  <Dropdown.Toggle variant="default" id="">
-                    <img src={IconEmptyWallet} /> <span>$10,350752.45</span>
-                  </Dropdown.Toggle>
-
-                  <Dropdown.Menu>
-                    <li><Dropdown.Item href="#">$10,350752.45</Dropdown.Item></li>
-                    <li><Dropdown.Item href="#">$10,350752.45</Dropdown.Item></li>
-                  </Dropdown.Menu>
-                </Dropdown>
+              <div className="walletdropdown">
+                <button aria-haspopup="true" aria-expanded="false" id="" type="button" className="dropdown-toggle btn btn-default">
+                  <img src={IconEmptyWallet} /> <span>{userBalance} USDT</span>
+                </button>
+              </div>
 
                 <Dropdown className="notifications">
                   <Dropdown.Toggle variant="default" id="">
@@ -76,11 +99,11 @@ const HeaderTopBar = ({menu}) => {
                 <Dropdown className="profiledropdown">
                   <Dropdown.Toggle variant="default" id="">
                     <div className="img"><img src={ProfileImage} /></div>
-                    <span>Кузнецова Мария</span>
+                    <span>{user?.name}</span>
                   </Dropdown.Toggle>
 
                   <Dropdown.Menu>
-                    <li className="title"><Dropdown.Item href="#">Кузнецова Мария</Dropdown.Item></li>
+                    <li className="title"><Dropdown.Item>{user?.name}</Dropdown.Item></li>
                     <li><Dropdown.Item href="#"><img src={IconSettingsImage} /> Account settings</Dropdown.Item></li>
                     <li><Dropdown.Item href="#"><img src={IconLogoutImage} /> Logout</Dropdown.Item></li>
                     <li className="last">

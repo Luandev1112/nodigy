@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'paths' => ['api/*'],
+    'paths' => ['api/*', 'admin/*', '*'],
 
     'allowed_methods' => ['*'],
 
@@ -30,5 +30,7 @@ return [
     'max_age' => false,
 
     'supports_credentials' => false,
+
+    'allowed_methods' => ['POST', 'GET', 'DELETE', 'PUT', '*']
 
 ];

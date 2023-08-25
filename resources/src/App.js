@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import {BrowserRouter as Router, Switch, Route} from 'react-router-dom';
 import PageScrollTop from './components/pageToTop/PageScrollTop'
 import Http from "./utils/Http";
-
 // Pages import Here 
 import Dashobard from "./pages/Dashboard";
 import Wallets from "./pages/Wallets";
@@ -18,6 +17,7 @@ import WalletConnect from "./pages/WalletConnect";
 import Error from "./pages/Error";
 const App = () => {
     const [isLogin, setIsLogin] = useState(false);
+    const [url, setUrl] = useState('');
     const checkUser = async() => {
         try{
             const res = await Http.get('/admin/getuser');
@@ -30,17 +30,25 @@ const App = () => {
             }
         }
     }
+
+    const setPath = (path) => {
+        setUrl(path);
+    }
+
     checkUser();
+    useEffect(()=>{
+        checkUser();
+    }, [url]);
     return (
         <Router>
         {
             isLogin && (
             <PageScrollTop>
                 <Switch>
-                    <Route path="/" exact component={Dashobard}/>
-                    <Route path="/admin" exact component={Dashobard}/>
-                    <Route path="/admin/dashboard" exact component={Dashobard}/>
-                    <Route path="/admin/wallets" exact component={Wallets}/>
+                    <Route exact path="/" render={ () => <Dashobard setPath={setPath} />} ></Route>
+                    <Route path="/admin" exact render={ () => <Dashobard setPath={setPath} />} />
+                    <Route path="/admin/dashboard" exact render={ () => <Dashobard setPath={setPath} />} />
+                    <Route path="/admin/wallets" exact render={ () => <Wallets setPath={setPath} />} />
                     <Route path="/admin/mybalance" exact component={MyBalance}/>
                     <Route path="/admin/delegation" exact component={Delegation}/>
                     <Route path="/admin/node" exact component={Node}/>

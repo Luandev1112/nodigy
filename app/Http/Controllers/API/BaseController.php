@@ -14,13 +14,11 @@ class BaseController extends Controller
      */
     public function sendResponse($result, $message)
     {
-    	$response = [
+        $response = [
             'success' => true,
-            'data'    => $result,
             'message' => $message,
+            'data'    => $result,
         ];
-
-
         return response()->json($response, 200);
     }
 
@@ -32,7 +30,12 @@ class BaseController extends Controller
      */
     public function sendError($error, $errorMessages = [], $code = 404)
     {
-    	$response = [
+        // Example of returning 200 OK with data
+        // Example of returning 201 Created with data
+        // Example of returning 404 Not Found
+        // Example of returning 422 Unprocessable Entity with validation errors
+
+        $response = [
             'success' => false,
             'message' => $error,
         ];

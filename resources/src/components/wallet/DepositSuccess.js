@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
-const DepositSuccess = ({setStep, setSubStep, valanceType}) => {
+const DepositSuccess = ({setStep, setSubStep, balanceType}) => {
     const gotoNextStep = () => {
-        switch(valanceType) {
+        switch(balanceType) {
             case 'server':
                 setSubStep('');
                 setStep(3);

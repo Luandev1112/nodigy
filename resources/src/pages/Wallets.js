@@ -1,46 +1,70 @@
 import React, {useState, useEffect} from 'react';
-import {Link} from "react-router-dom";
+import { useHistory } from 'react-router-dom';
+import Http from "../utils/Http";
 import Sidebar from '../common/header/Sidebar';
 import HeaderTopBar from '../common/header/HeaderTopBar';
 import { Button, Dropdown, Modal } from 'react-bootstrap';
 import WalletsBlankImage from '../assets/img/wallets-blank-img.png';
 import IconCloseModalImage from '../assets/img/icon-close-modal.png';
-import networkList from '../data/wallet/networkList.json';
-import networkWallets from '../data/wallet/networkWallets.json';
 
 import { Connection, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 import { SigningStargateClient, makeSignDoc } from "@cosmjs/stargate";
 // Braavos Wallet
 import { BraavosConnector } from '@web3-starknet-react/braavos-connector';
-
 // import Web3 from 'web3';
 import Web3Modal, { providers } from 'web3modal';
 import {ethers} from 'ethers';
-const Wallets = () => {
+// Tron
+import TronWeb from 'tronweb';
+import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
+
+const Wallets = ({setPath}) => {
+    const history = useHistory();
     const [show, setShow] = useState(false);
     const [selectedNetworkIndex, setSelectedNetworkIndex] = useState(-1);
+    const [networkList, setNetworkList] = useState([]);
     const [walletList, setWalletList] = useState([]);
     const [selectedWallet, setSelectedWallet] = useState(null);
     const [loading, setLoading] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState(false);
     const web3Modal = typeof window !== 'undefined' && new Web3Modal({ cacheProvider: true });
     const [walletName, setWalletName] = useState('');
+    const [walletAddress, setWalletAddress] = useState();
     //Phantom wallet 
-    const [signer, setSigner] = useState(null);
     const [connected, setConnected] = useState(false);
     const [braavosWallet, setBraavosWallet] = useState(null);
     // braavos wallet
     const braavosWalletConnector = new BraavosConnector({ supportedChainIds: [1,5] });
+    const mediaUrl = "https://static.nodigy.com/";
     const handleClose = () => {
         setShow(!show);
     }
 
-    const selectNetwork = (indexId) => {
+    const checkInstalledWallets = async() => {
+        const res = await Http.get('/admin/api/checkeInstalledWallets');
+        console.log("user wallet data : ", res.data);
+        if(res.data.result == 1) {
+            history.push('/admin/wallet-details');
+        }else{
+            console.log("this page");
+        }
+    }
+    checkInstalledWallets();
+
+    const selectNetwork = async (indexId) => {
         setSelectedNetworkIndex(indexId);
         const networkId = networkList[indexId].id;
-        const selectedNetwork = networkWallets.find(nWallet => nWallet.networkId === networkId);
-        setWalletList(selectedNetwork.wallets);
-        setSelectedWallet(null);
+        try{
+            const res = await Http.get('/admin/api/getNetworkWallets/'+networkId);
+            if(res.data.length > 0){
+                console.log(res.data);
+                setWalletList(res.data);
+                setSelectedWallet(null);
+                setWalletName('');
+            }
+        }catch(err){
+            
+        }
     }
 
     const onInputChange = (e) => {
@@ -55,6 +79,7 @@ const Wallets = () => {
         if(walletList.length == 0){
             setSelectedWallet(null);
         }else{
+            console.log('wallet list : ', walletList);
             setSelectedWallet(walletList[indexId]);
         }
     }
@@ -62,19 +87,22 @@ const Wallets = () => {
     const walletConnectConfirm = async () => {
         if(selectedWallet)
         {
-            const walletName = selectedWallet.name;
+            const walletName = selectedWallet.supp_wallet_name.toLowerCase();
             switch(walletName){
-                case 'MetaMask':
+                case 'metamask':
                     await metamaskConnect();
                 break;
-                case 'Phantom':
+                case 'phantom':
                     await connectPhantomWallet();
                 break;
-                case 'Keplr':
+                case 'keplr':
                     await connectToKeplr();
                 break;
-                case 'Braavos':
+                case 'braavos':
                     await connectBraavosWallet();
+                break;
+                case 'tronlink':
+                    await connectTronLink();
                 break;
             }
         }else{
@@ -96,43 +124,36 @@ const Wallets = () => {
         try {
             setLoading(true);
             checkIfExtensionIsAvailable();
+            if(window.ethereum.isConnected()){
+                await window.ethereum.request({
+                    method: "wallet_requestPermissions",
+                    params: [
+                      { eth_accounts: {} }, // Empty permissions to disconnect the wallet
+                    ],
+                });
+            }
             const connection = web3Modal && (await web3Modal.connect());
             const provider = new ethers.providers.Web3Provider(connection);
             await subscribeProvider(connection);
-            setWalletAddress(provider);
+            setMetamaskAddress(provider);
             setLoading(false);
             setConnectionStatus(true);
         } catch (error) {
             console.log(error);
             setLoading(false);
             setConnectionStatus(false);
-            // console.log("Got this error on connectToWallet catch block while connecting the wallet");
+            console.log("Got this error on connectToWallet catch block while connecting the wallet");
         }
     };
 
-    const setWalletAddress = async (provider) => {
+    const setMetamaskAddress = async (provider) => {
         try {
             const signer = provider.getSigner();
             if(signer) {
                 const web3Address = await signer.getAddress();
+                setWalletAddress(web3Address);
                 getBalance(provider, web3Address);
-                const evm = sessionStorage.getItem('evm');
-                if(evm){
-                    let _evm = JSON.parse(evm);
-                    _evm.metamask = {
-                        address: web3Address,
-                        name: walletName
-                    };
-                    sessionStorage.setItem('evm', JSON.stringify(_evm));
-                }else{
-                    let _evm = {
-                        metamask: {
-                            address: web3Address,
-                            name: walletName
-                        }
-                    };
-                    sessionStorage.setItem('evm', JSON.stringify(_evm));
-                }
+                saveUserWallet(web3Address);
             }
         } catch (error) {
             setConnectionStatus(false);
@@ -168,29 +189,10 @@ const Wallets = () => {
         if (window.solana && window.solana.isPhantom) {
             try{
                 const provider = window.solana;
-                console.log("solana - ", provider);
                 await provider.connect();
                 const connection = new Connection('https://api.mainnet-beta.solana.com');
-                const publicKey = await provider.publicKey;
-                console.log("public key:", publicKey);
-
-                const solana = sessionStorage.getItem('solana');
-                if(solana){
-                    let _solana = JSON.parse(solana);
-                    _solana.phantom = {
-                        name: walletName,
-                        address: publicKey
-                    };
-                    sessionStorage.setItem('solana', JSON.stringify(_solana));
-                }else{
-                    let _solana = {
-                        phantom: {
-                            name: walletName,
-                            address: publicKey
-                        }
-                    };
-                    sessionStorage.setItem('solana', JSON.stringify(_solana));
-                }
+                const publicKey = provider.publicKey;
+                console.log("Phantom Public Key : " + publicKey);
 
                 const signer = {
                     publicKey,
@@ -230,23 +232,7 @@ const Wallets = () => {
                     },
                 };
                 const kpWallet = await keplrSigner.getAddress();
-                const cosmos = sessionStorage.getItem('cosmos');
-                if(cosmos){
-                    let _cosmos = JSON.parse(cosmos);
-                    _cosmos.keplr = {
-                        name: walletName,
-                        address: kpWallet
-                    };
-                    sessionStorage.setItem('cosmos', JSON.stringify(_cosmos));
-                }else{
-                    let _cosmos = {
-                        keplr: {
-                            name: walletName,
-                            address: kpWallet
-                        }
-                    };
-                    sessionStorage.setItem('cosmos', JSON.stringify(_cosmos));
-                }
+                saveUserWallet(kpWallet);
                 setConnectionStatus(true);
             } catch (error) {
                 setConnectionStatus(false);
@@ -265,23 +251,7 @@ const Wallets = () => {
                 return;
             }
             setBraavosWallet(braavosWallet);
-            const starknet = sessionStorage.getItem('starknet');
-            if(starknet){
-                let _starknet = JSON.parse(starknet);
-                _starknet.braavos = {
-                    name: walletName,
-                    address: braavosWallet
-                };
-                sessionStorage.setItem('starknet', JSON.stringify(_starknet));
-            }else{
-                let _starknet = {
-                    braavos: {
-                        name: walletName,
-                        address: braavosWallet
-                    }
-                };
-                sessionStorage.setItem('starknet', JSON.stringify(_starknet));
-            }
+            saveUserWallet(braavosWallet);
             setConnectionStatus(true);
         } catch (error) {
             setConnectionStatus(false);
@@ -289,8 +259,65 @@ const Wallets = () => {
         }
     }
 
-    useEffect(()=>{
+    const connectTronLink = async() => {
+        if(window.tronWeb){
+            const tronWeb = new TronWeb({
+                fullHost: 'https://api.trongrid.io',
+                headers: { 'TRON-PRO-API-KEY': 'your api key' },
+            });
+            
+            const adapter = new TronLinkAdapter();
+            // connect
+            await adapter.connect();
+            console.log("Ready:", window.tronWeb.ready);
+            if(window.tronWeb.ready) {
+                const _walletAddress = adapter.address;
+                saveUserWallet(_walletAddress);
+                setConnectionStatus(true);
+            }else{
+                setConnectionStatus(false);
+            }
+        }else{
+            setConnectionStatus(false);
+            alert("Please install TronLink Wallet");
+        }
+        
+        // const targetAddress = "TCPnqhNozXMaY4gFxvLWKS26FmPhDHvWvD";
+        // // create a send TRX transaction
+        // const unSignedTransaction = await tronWeb.transactionBuilder.sendTrx(targetAddress, 10, adapter.address);
+        // // using adapter to sign the transaction
+        // const signedTransaction = await adapter.signTransaction(unSignedTransaction);
+        // // broadcast the transaction
+        // const transactionResult = await tronWeb.trx.sendRawTransaction(signedTransaction);
+        // console.log(transactionResult);
 
+    }
+
+    const getNetwork = async () => {
+        try{
+            const res = await Http.get('/admin/api/getNetworks');
+            if(res.data.length > 0){
+                console.log(res.data);
+                setNetworkList(res.data);
+            }
+        }catch(err){
+            
+        }
+    }
+
+    const saveUserWallet = async (addr) => {
+        const formData = new FormData();
+        formData.append('wallet_id', selectedWallet.id);
+        formData.append('network_id', selectedWallet.network_id);
+        formData.append('wallet_name', walletName);
+        formData.append('wallet_address', addr);
+        const result = await Http.post('/admin/api/saveUserWallet', formData);
+        console.log('Result ::: ', result);
+    };
+
+    useEffect(()=>{
+        setPath('wallets');
+        getNetwork();
         if(connectionStatus){
             window.location.href = "/admin/wallet-details";
         }
@@ -321,13 +348,13 @@ const Wallets = () => {
                                     <label>Select Network</label>
                                     <Dropdown className="">
                                         <Dropdown.Toggle variant="default" id="connectedwalletsaction1">
-                                            {selectedNetworkIndex == -1 ? <span>Select Network</span> : <React.Fragment><span className="img"><img src={networkList[selectedNetworkIndex].image} /></span> {networkList[selectedNetworkIndex].name}</React.Fragment>}
+                                            {selectedNetworkIndex == -1 ? <span>Select Network</span> : <React.Fragment><span className="img"><img src={mediaUrl+"network_logo/"+networkList[selectedNetworkIndex].network_logo} /></span> {networkList[selectedNetworkIndex].network_name}</React.Fragment>}
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu>
                                             {networkList.map((network, i) => {
                                                 return(
                                                     <li key={i}>
-                                                        <Dropdown.Item onClick={()=>selectNetwork(i)} ><span className="img"><img src={network.image} /></span> {network.name}</Dropdown.Item>
+                                                        <Dropdown.Item onClick={()=>selectNetwork(i)} ><span className="img"><img src={mediaUrl+"network_logo/"+network.network_logo} /></span> {network.network_name}</Dropdown.Item>
                                                     </li>
                                                 )
                                             })}
@@ -338,13 +365,13 @@ const Wallets = () => {
                                     <label>Select the wallet</label>
                                     <Dropdown className="">
                                         <Dropdown.Toggle variant="default" id="connectedwalletsaction1">
-                                            {selectedWallet? <React.Fragment><span className="img"><img className="max-width-20" src={selectedWallet.image} /></span> {selectedWallet.name} </React.Fragment>: <span>Select Wallet</span>}
+                                            {selectedWallet? <React.Fragment><span className="img"><img className="max-width-20" src={mediaUrl+"wallet_logo/"+selectedWallet.wallet_logo} /></span> {selectedWallet.supp_wallet_name} </React.Fragment>: <span>Select Wallet</span>}
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu>
-                                        {walletList.map((wallet, i) => {
+                                            {walletList.map((wallet, i) => {
                                                 return(
                                                     <li key={i}>
-                                                        <Dropdown.Item onClick={()=>selectWallet(i)} ><span className="img"><img className="max-width-20" src={wallet.image} /></span> {wallet.name}</Dropdown.Item>
+                                                        <Dropdown.Item onClick={()=>selectWallet(i)} ><span className="img"><img className="max-width-20" src={mediaUrl+"wallet_logo/"+wallet.wallet_logo} /></span> {wallet.supp_wallet_name}</Dropdown.Item>
                                                     </li>
                                                 )
                                             })}

@@ -1,0 +1,7 @@
+{
+    "require": {
+        "cedricziel/php-hetzner-cloud-api": "^0.1.0",
+        "symfony/http-client": "^5.4",
+        "nyholm/psr7": "^1.8"
+    }
+}
