@@ -68,8 +68,8 @@ class Project extends Model
         return "";
     }
 
-    // public function wizardSetting()
-    // {
-    //     return $this->hasMany(WizardSetting::class);
-    // }
+    public function wizardSetting()
+    {
+        return $this->hasMany(WizardSetting::class);
+    }
 }

@@ -28,6 +28,11 @@ class WizardSetting extends Model
         7 => '8 core AMD',
         8 => '16 core AMD',
     ];
+    public static $serverConfigType = [
+        1 => 'Minimum required',
+        2 => 'Recommended',
+        3 => 'Max performance',
+    ];
 
     public function WizardSettingStep()
     {

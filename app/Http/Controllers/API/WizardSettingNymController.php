@@ -16,10 +16,12 @@ use App\Models\WizardSettingNym;
 use App\Models\NymNodeLog;
 use App\Models\DataCenter;
 use App\Models\WizardSetting;
+use App\Models\Project;
 
 use App\Http\Resources\WizardSettingNymResource;
 
 use App\Services\HetznerApiService;
+use App\Jobs\NymInstallJob;
 
 class WizardSettingNymController extends BaseController
 {
@@ -106,6 +108,7 @@ class WizardSettingNymController extends BaseController
         }
         return $this->sendError('Error', ['error'=>'Something went wrong. Please try again'],404);
     }
+
     public function view(Request $request)
     {
         $rules=[
@@ -151,7 +154,7 @@ class WizardSettingNymController extends BaseController
             'project_id'=>"required|integer",
             'node_id'=>"required|integer",
             'location_id'=>"required|integer",
-            'wizard_setting_id'=>"required|integer",
+            'data_center_type'=>"required",
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -179,45 +182,57 @@ class WizardSettingNymController extends BaseController
                     }
                 }
 
+                $project = Project::where('id',$request->project_id)->first();
+                if(empty($project))
+                {
+                    return $this->sendError('Error', ['error'=>'Project not found, Please try again'],404);
+                }
+
                 $wizardSettingNym = WizardSettingNym::where('project_id',$request->project_id)
                     ->where('node_id',$request->node_id)
                     ->where('user_id',$loginUser->id)
                     ->first();
-                if(empty($wizardSettingNym)){
-                    return $this->sendError('Error', ['error'=>'WizardSettingNym log not found, Please try again'],404);
+                if(empty($wizardSettingNym))
+                {
+                    $wizardSettingNym = new WizardSettingNym();
+                    $wizardSettingNym->project_id = $request->project_id;
+                    $wizardSettingNym->user_id = $loginUser->id;
+                    $wizardSettingNym->node_id = $request->node_id;
+                    $wizardSettingNym->save();
+                    if(empty($wizardSettingNym))
+                    {
+                        return $this->sendError('Error', ['error'=>'WizardSettingNym log not found, Please try again'],404);
+                    }
                 }
 
-                $wizardSetting = WizardSetting::where('id',$request->wizard_setting_id)->first();
-                if(empty($wizardSetting)){
-                    return $this->sendError('Error', ['error'=>'Wizard setting not found, Please try again'],404);
-                }
+                $image_name = "ubuntu-20.04";
+                $location_id = $request->location_id;
+                $server_type_id = $request->server_type_id;
+                $data_center_type = $request->data_center_type;
 
-                $dataCenter = DataCenter::where('server_id',$wizardSetting->datacenter_server_id)->orderBy('id', 'desc')->first();
-                $serverLog = (isset($dataCenter->id) && $dataCenter->api_log)? json_decode($dataCenter->api_log,true):[];
-                $image_name = (isset($serverLog['image']['name']) && $serverLog['image']['name'])? $serverLog['image']['name']:"";
-                $server_type_id = (isset($serverLog['server_type']['id']) && $serverLog['server_type']['id'])? $serverLog['server_type']['id']:"";
-
-                $serverName = Str::slug("NYM-SERVER-".$loginUser->id, '-') . '-' . time();
-
+                $projectName = $project->project_name;
+                $serverName = Str::slug($projectName."-server-".$loginUser->id, '-') . '-' . uniqid();
                 $uniqueKey = 'user-nym-' . $loginUser->id;
+
                 $serverData = [
-                    "location" => ($request->location_id)? $request->location_id:"",
+                    "location" => $location_id,
                     "image" => $image_name,
                     "name" => $serverName,
                     "ssh_keys" => [$uniqueKey],
                     "start_after_create" => true,
-                    /* "public_net" => [
-                        "enable_ipv4" => false,
-                        "enable_ipv6" => false,
-                        "ipv4" => null,
-                        "ipv6" => null,
-                    ], */
-                    "server_type" => ($server_type_id !== null) ? (string)$server_type_id : "1",
-                    //"placement_group" => 27476,
-                    //"networks" => 1591306,
+                    "server_type" => (string)$server_type_id,
+                    "user_data" => "#cloud-config\nruncmd:\n- [touch, /root/cloud-init-worked]\n",
                 ];
+
                 $apiResponse = $this->service->createServer($serverData);
 
+                if(isset($apiResponse['server']['id']))
+                {
+                    $datacenter = (isset($apiResponse['server']['datacenter']))? $apiResponse['server']['datacenter']:"";
+
+                    $wizardSettingNym->data_center_id = (isset($datacenter['id']) && $datacenter['id'])? $datacenter['id']:"";
+                    $wizardSettingNym->server_id = $apiResponse['server']['id'];
+                }
                 $wizardSettingNym->installation_json = ($serverData)? json_encode($serverData):"";
                 $wizardSettingNym->installation_log = ($apiResponse)? json_encode($apiResponse):"";
                 $wizardSettingNym->save();
@@ -328,8 +343,9 @@ class WizardSettingNymController extends BaseController
     public function nodeInstallationStart(Request $request)
     {
         $rules=[
-            'node_id'=>"required",
-            'project_id'=>"required",
+            'server_id'=>"required|integer",
+            'project_id'=>"required|integer",
+            'node_id'=>"required|integer",
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -345,27 +361,34 @@ class WizardSettingNymController extends BaseController
 
             try {
 
-                $host = '23.88.49.33'; // Replace with your server's IP or hostname
-                $username = 'user-nym-' . $loginUser->id; // Replace with your SSH username
+                $model = WizardSettingNym::where('project_id',$request->project_id)
+                    ->where('node_id',$request->node_id)
+                    ->where('server_id',$request->server_id)
+                    ->where('user_id',$loginUser->id)
+                    ->first();
 
-                $path = storage_path('app/hetzner-keys/' . $username);
-                $privateKeyPath = $path . "/id_rsa.pub"; // Path to your private key
-                $publicKey = file_get_contents($privateKeyPath);
-
-                if (env('HETZNER_TYPE') == "local") {
-                    $scriptPath = 'wget -O NYM-mainnet-install.sh  http://23.88.49.33/NYM-mainnet-install.sh  && chmod +x NYM-mainnet-install.sh  && ./NYM-mainnet-install.sh';
-                } else {
-                    $scriptPath = '/var/www/html/automation/nym/NYM-mainnet-install.sh';
+                if(empty($model)){
+                    return $this->sendError('Error', ['error'=>'Server not found, Please try again'],404);
                 }
 
-                //$output = exec($scriptPath);
-                //pr($output);
+                $settinginstall = getSettingBySlug('nym-installation-command');
+
+                $installCommand = "";
+                if(isset($settinginstall['content']) && $settinginstall['content']){
+                    $installCommand = $settinginstall['content'];
+                }else{
+                    return $this->sendError('Error', ['error'=>'installation command not found, Please try again'],404);
+                }
+
+                $details['command'] = $installCommand;
+                dispatch(new NymInstallJob($details));
 
                 return $this->sendResponse([], 'Node Installation Start Successfully.');
+
             } catch (Exception $e) {
                 $message = $e->getMessage() . $e->getLine();
-                Log::info("viewServer:".$message);
-                return $this->sendError('Error', ['error'=>'Error get server data. Please try again'],201);
+                Log::info("nodeInstallationStart:".$message);
+                return $this->sendError('Error', ['error'=>'Command failed with error. Please try again'],201);
             }
         }
         return $this->sendError('Error', ['error'=>'Something went wrong. Please try again'],404);

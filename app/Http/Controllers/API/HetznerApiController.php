@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\API\BaseController as BaseController;
-
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Exception;
-
 use App\Services\HetznerApiService;
 
 class HetznerApiController extends BaseController
@@ -168,6 +167,70 @@ class HetznerApiController extends BaseController
             $message = $e->getMessage() . $e->getLine();
             Log::info("getAllPlacementGroups:".$message);
             return $this->sendError('Error', ['error'=>'Error get placement groups data. Please try again'],201);
+        }
+    }
+
+    public function getText($value)
+    {
+        $text = preg_replace("/[^A-Za-z]/", "", $string);
+        return $text;
+    }
+
+    public function getProjectServers(Request $request, $name)
+    {
+        $setting = null;
+        $project = Project::where('project_name', $name);
+        $project_servers = array();
+        try {
+            $apiResponse = $this->service->geHetznerApiData('server_types');
+            if(isset($apiResponse['server_types']) && !empty($apiResponse['server_types']))
+            {
+                $servers = $apiResponse['server_types'];
+                if($project->count() > 0)
+                {
+                    $wizardSetting = $project->first()->wizardSetting();
+                    if($wizardSetting->count() > 0)
+                    {
+                        $setting = $wizardSetting->first();
+                    }
+                }
+                if($setting)
+                {
+                    $cpu = '';
+                    $count = 0;
+                    foreach($servers as $server){
+                        $cores = $server['cores'];
+                        $memory = $server['memory'];
+                        $disk = $server['disk'];
+                        $price = $server['prices'][0]['price_monthly']['gross'];
+                        if($setting->min_req_vcpus <= $cores && $setting->min_req_ram <= $memory && $setting->min_req_ssd <= $disk &&  $setting->min_req_price <= $price ){
+                            if($cpu == ''){
+                                $cpu = preg_replace("/[^A-Za-z]/", "", $server['name']);
+                                $count = 1;
+                            }else{
+                                $new_cpu = preg_replace("/[^A-Za-z]/", "", $server['name']);
+                                if($new_cpu == $cpu){
+                                    $count++;
+                                }else{
+                                    $count = 1;
+                                    $cpu = $new_cpu;
+                                }
+                            }
+                            if($count <= 2){
+                                array_push($project_servers, $server);
+                            }
+                        }
+
+                    }
+                }
+                return $this->sendResponse($project_servers, 'List Successfully.');
+            }else{
+                return $this->sendError('Error',$apiResponse,201);
+            }
+        } catch (Exception $e) {
+            $message = $e->getMessage() . $e->getLine();
+            Log::info("getAllServerTypes:".$message);
+            return $this->sendError('Error', ['error'=>'Error get server types data. Please try again'],201);
         }
     }
 }

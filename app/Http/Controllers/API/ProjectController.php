@@ -78,12 +78,10 @@ class ProjectController extends BaseController
         {
             $mainResource = new WizardSettingResourceView($model);
             $fortaSettingResource = ($model->project_id==3)? new WizardSettingStepResourceView($model):[];
-            $dataCenterResource = new DataCenterResourceView($model->dataCenter);
 
             $responseData = [
                 'wizard_setting' => $mainResource,
                 'forta_setting' => $fortaSettingResource,
-                'data_center' => $dataCenterResource,
             ];
             return $this->sendResponse($responseData, 'view Successfully.');
         }else{

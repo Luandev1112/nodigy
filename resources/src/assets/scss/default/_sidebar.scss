@@ -1,0 +1,88 @@
+.sidebar {
+	width: 250px;
+	background: #232B38;
+	padding: 45px 25px;
+	min-height: 100vh;
+	position: fixed;
+	height: 100%;
+	left: 0;
+	top: 0;
+
+    .logo {
+        padding: 0 0 20px;
+        border-bottom: 1px solid #2A313C;
+        margin-bottom: 40px;
+    }
+    
+    ul {
+        li {
+            margin-bottom: 10px;
+
+            a {
+                display: flex;
+                align-items: center;
+                padding: 13px 15px;
+                background: transparent;
+                border-radius: 12px;
+                color: #fff;
+                position: relative;
+
+                .img {
+                    width: 20px;
+                    margin-right: 10px;
+                    text-align: center;
+                    img {
+                        // 
+                    }
+                }
+
+                span {
+                    font-size: 14px;
+                    color: #A0AEC0;
+                    width: calc(100% - 30px);
+                    &.num {
+                        position: absolute;
+                        right: 15px;
+                        top: 15px;
+                        width: 20px;
+                        height: 20px;
+                        background: #fff;
+                        border-radius: 50%;
+                        text-align: center;
+                        color: #1A202C;
+                    }
+                }
+
+                &.active {
+                    background: #5129F1;
+
+                    span {
+                        color: #fff;
+                    }
+
+                }
+
+            }
+            &.dropdown {
+                .dropdown-menu {
+                    position: relative;
+                    width: 100%;
+                    padding: 0 0 0 30px;
+                    background: transparent;
+                    box-shadow: none;
+                    border: 0;
+
+                    li {
+                        margin-bottom: 0;
+
+                        a:hover {
+                            background: transparent;
+                            color: #fff;
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+}

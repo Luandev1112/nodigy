@@ -6,26 +6,26 @@
 // @import url('../css/bootstrap/bootstrap-utilities.css');
 // @import url('../css/bootstrap/bootstrap-grid.css');
 
-// @import 'font/font';
-
+@import 'font/font';
 @import url('../css/slick.css');
 @import url('../css/slicktheme.css');
 @import url('../css/animation.css');
 // @import url('../css/font-awesome.min.css');
 // @import url('../css/owl.carousel.min.css');
-@import url('../css/style.css');
-@import url('../css/frontstyle.css');
 
-// @import 'default/variables';
-// @import 'default/mixins';
-// @import 'default/reset';
-// @import 'default/typography';
-// @import 'default/extend';
+@import 'default/variables';
+// @import 'default/title';
+// @import 'default/sidebar';
+// @import 'default/tables';
+@import 'default/extend';
 // @import 'default/animations';
-// @import 'default/shortcode';
+// @import 'default/wraper';
 // @import 'default/spacing';
-// @import 'default/common';
+@import 'default/common';
 // @import 'default/forms';
+
+@import 'elements/admin';
+@import 'elements/front';
 
 /**************************************
     Theme Styles
@@ -91,14 +91,6 @@
 // @import 'template/banner';
 // @import 'template/portfoliodetails';
 // @import 'template/splash';
-
-
-
-/**************************************
-    Footer Styles
-***************************************/
-
 // @import 'footer/footer';
 // @import 'footer/copyright';
 // @import 'footer/darkmode';
-

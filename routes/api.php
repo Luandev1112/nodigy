@@ -76,7 +76,7 @@ Route::group(['middleware' => ['verifyBearerToken']], function () {
         Route::get('/all-server-types', 'API\HetznerApiController@getAllServerTypes');
         Route::get('/all-placement-groups', 'API\HetznerApiController@getAllPlacementGroups');
 
-        // Route::get('/project-servers/{name}', 'API\HetznerApiController@getProjectServers');
+        Route::get('/project-servers/{name}', 'API\HetznerApiController@getProjectServers');
     });
 
     Route::group(['prefix' => 'convert-price'], function () {
@@ -89,9 +89,11 @@ Route::group(['middleware' => ['verifyBearerToken']], function () {
     });
 
     // nym node apis
+    Route::get('/getInitialNode', 'API\NYMController@getInitialNode');
     Route::post('/walletPayment', 'API\NYMController@walletPayment');
     Route::post('/purchaseServer', 'API\NYMController@purchaseServer');
     Route::get('/getTransaction/{hashId}', 'API\NYMController@getTransaction');
     Route::post('/addWallet', 'API\NYMController@addWallet');
     Route::post('/getNodeWallet', 'API\NYMController@getNodeWallet');
+    Route::post('/save-server-id', 'API\NYMController@saveServerId');
 });

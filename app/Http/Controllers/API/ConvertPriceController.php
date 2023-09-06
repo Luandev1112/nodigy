@@ -50,7 +50,7 @@ class ConvertPriceController extends BaseController
                 return $this->sendResponse($result, 'Convert Price Successfully.');
             } catch (Exception $e) {
                 $message = $e->getMessage() . $e->getLine();
-                Log::info("viewServer:".$message);
+                Log::info("getEuroToUSDT:".$message);
                 return $this->sendError('Error', ['error'=>'Error get Price data. Please try again'],201);
             }
         }
@@ -63,6 +63,6 @@ class ConvertPriceController extends BaseController
         $result = array();
         $result['rate'] = $exchangeRate;
         return $this->sendResponse($result, 'Convert Price Successfully.');
-        
+
     }
 }

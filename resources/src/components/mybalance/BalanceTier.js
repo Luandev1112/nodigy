@@ -1,8 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {Link} from "react-router-dom";
 import { Button, Dropdown, Form, Modal } from 'react-bootstrap';
-import Graphimage from "../../assets/img/stats.png";
-import TierIcon1 from "../../assets/img/dashboard-tier1-icon1.png";
 import IconCopyImage from "../../assets/img/icon-copy.png";
 import IconAddFundsImage from "../../assets/img/icon-add-funds.svg";
 import IconWithdrawImage from "../../assets/img/icon-withdraw.svg";
@@ -12,7 +10,7 @@ import IconCopy from '../../assets/img/icon-copy.png';
 import AddFundsImage from '../../assets/img/add-funds-img.png';
 import WithdrawSecondImage from '../../assets/img/withdrawsecond-img.png';
 import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
-import TronWeb from 'tronweb';
+import LoadingSpinner from '../LoadingSpinner';
 import Http from "../../utils/Http";
 
 import Web3 from 'web3';
@@ -33,6 +31,7 @@ const BalanceTier = ({changeBalance}) => {
     const [transactionStatus, setTransactionStatus] = useState(false);
     const [balanceAddress, setBalanceAddress] = useState("");
     const [transactionId, setTransactionId] = useState("");
+    const [loadingStatus, setLoadingStatus] = useState(false);
     const web3Modal = typeof window !== 'undefined' && new Web3Modal({ cacheProvider: true });
     // const contractWalletAddress = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
     const contractWalletAddress = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";
@@ -68,12 +67,12 @@ const BalanceTier = ({changeBalance}) => {
         {
             return;
         }
+        setLoadingStatus(true);
         if(!fundSuccess) {
             if(amount*1 > 0) {
-                console.log(amount);
+                console.log("Tron Web: ", tronWeb.trx);
                 try {
                     const { abi } = await tronWeb.trx.getContract(contractWalletAddress);
-                    console.log("abi :=>", abi);
                     const usdtContract = tronWeb.contract(abi.entrys, contractWalletAddress);
                     const balance = await usdtContract.methods.balanceOf(walletAddress).call();
                     const walletBalance = Number(balance) / 1000000;
@@ -138,6 +137,7 @@ const BalanceTier = ({changeBalance}) => {
             setWalletName("TronLink");
             setFundSuccess(false);
         }
+        setLoadingStatus(false);
     }
 
     const handleAddWithdraw = async() => {
@@ -145,6 +145,7 @@ const BalanceTier = ({changeBalance}) => {
         {
             return;
         }
+        setLoadingStatus(true);
         if(!withdrawSuccess) {   
             if(amount*1 < addressAmount*1 && amount*1 > 0) {
                 const token = 'token';
@@ -192,6 +193,7 @@ const BalanceTier = ({changeBalance}) => {
             setWalletName("TronLink");
             setWithdrawSuccess(false);
         }
+        setLoadingStatus(false);
     }
 
     const selectTronLink = async() => {
@@ -341,6 +343,7 @@ const BalanceTier = ({changeBalance}) => {
 
     return (
         <div className="mybalance-tier1">
+            {loadingStatus && <LoadingSpinner />}
             <div className="row">
                 <div className="col-sm-5">
                     <div className="items item1">

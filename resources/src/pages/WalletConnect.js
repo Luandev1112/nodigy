@@ -45,8 +45,8 @@ const WalletConnect = () => {
     const [wallet, setWallet] = useState(null);
     const [chain, setChain] = useState(null);
 
-    // const nymUrl = "https://nym.nodigy.com";
-    const nymUrl = "http://localhost:3000";
+    const nymUrl = "https://nym.nodigy.com";
+    // const nymUrl = "http://localhost:3000";
 
     const changeMode = () => {
         darkMode ? setDarkMode(false) : setDarkMode(true);

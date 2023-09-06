@@ -6,7 +6,7 @@ use App\Models\SupportedWallet;
 use App\Models\UserWallet;
 use App\Models\User;
 use App\Models\Project;
-use App\Models\Server;
+// use App\Models\Server;
 use App\Models\UserTransaction;
 use App\Models\Node;
 use App\Models\Chain;
@@ -19,24 +19,26 @@ class NYMController extends BaseController
     public function getInitialNode(Request $request)
     {
         $data = array();
-        $user = User::findOrFail(1);
+        $user = $request->user;
         $cond['user_id'] = $user->id;
         $cond['node_status'] = 0;
-        $nodes = Node::where($cond)->get();
+        $nodes = Node::where($cond)->orderBy('id', 'DESC')->get();
         if($nodes->count() > 0){
             $node = $nodes[0];
             $data['status'] = 1;
+            $data['node'] = $node;
             $project_id = $node->project_id;
             if($project_id != null){
                 $project = Project::findOrFail($project_id);
                 $project->setup_fee = $project->onbording_fee;
                 $data['project'] = $project;
             }
-            $server_id = $node->server_id;
-            if($server_id != null) {
-                $server = Server::findOrFail($server_id);
-                $data['server'] = $server;
-            }
+
+            // $server_id = $node->server_id;
+            // if($server_id != null) {
+            //     $server = Server::findOrFail($server_id);
+            //     $data['server'] = $server;
+            // }
             $user_wallet_id = $node->user_wallet_id;
             if($user_wallet_id != null) {
                 $user_wallet = UserWallet::findOrFail($user_wallet_id);
@@ -99,21 +101,19 @@ class NYMController extends BaseController
     {
         $data = array();
         $user = $request->user;
-        $server_id = $request->server_id;
+        // $server_id = $request->server_id;
         $date = time() * 1000;
+        $price = $request->price;
 
-        $server = Server::findOrFail($server_id);
-        $monthly_fee = $server->monthly_price;
         $project_cond['project_name'] = 'NYM';
         $project = Project::where($project_cond)->first();
-        $onbording_fee = $project->onbording_fee;
 
         $transaction_data = array();
         $transaction_data['project_id'] = $project->id;
-        $transaction_data['server_id'] = $server_id;
+        // $transaction_data['server_id'] = $server_id;
         $transaction_data['user_id'] = $user->id;
         $transaction_data['date'] = $date;
-        $transaction_data['amount'] = $monthly_fee + $onbording_fee;
+        $transaction_data['amount'] = $price;
         $transaction_data['purpose'] = "Purchase one-time onbording fee and monthly and server monthly payment";
         $transaction_data['txn_id'] = time();
 
@@ -126,9 +126,10 @@ class NYMController extends BaseController
         $node_data = array();
         $node_data['user_id'] = $user->id;
         $node_data['project_id'] = $project->id;
-        $node_data['server_id'] = $server->id;
+        // $node_data['server_id'] = $server_id;
         // $node_data['setup_fee'] = $transaction_data['amount'];
         $node = Node::create($node_data);
+        $data['node'] = $node;
         $data['transaction'] = $transaction_data;
         $data['user_balance'] = $user->balance;
         return response()->json($data, 200);
@@ -168,6 +169,17 @@ class NYMController extends BaseController
         $node_cond['user_id'] = $user->id;
         $node = Node::where($node_cond)->first();
         $result['wallet'] = $node->description;
+        return response()->json($result, 200);
+    }
+
+    public function saveServerId(Request $request)
+    {
+        $result = array();
+        $node_id = $request->node_id;
+        $server_id = $request->server_id;
+        $node = Node::findOrFail($node_id);
+        $node->server_id = $server_id;
+        $result = $node->save();
         return response()->json($result, 200);
     }
 
