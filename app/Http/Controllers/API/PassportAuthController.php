@@ -46,8 +46,11 @@ class PassportAuthController extends BaseController
 
         $user = User::where('email', $credentials['email'])
             ->where('status', User::ACTIVE)
-            ->where('role_type',User::USER)
             ->first();
+
+            //->where('role_type',User::USER)
+            
+            
         if ($user && password_verify($credentials['password'], $user->password))
         {
             $accessToken = $user->createToken('MyApp')->accessToken;

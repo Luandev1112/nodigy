@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
 use Illuminate\Support\Facades\Log;
+use Exception;
 
 class NymInstallJob implements ShouldQueue
 {
@@ -37,14 +38,18 @@ class NymInstallJob implements ShouldQueue
         $installCommand = $this->details['command'];
         Log::info($installCommand);
 
-        exec($installCommand, $output, $returnCode);
+        try {
+            exec($installCommand, $output, $returnCode);
 
-        if ($returnCode === 0) {
-            Log::info("NymInstallJob: Node Installation Start Successfully.");
-            Log::info($output);
-        } else {
-            Log::info("NymInstallJob: Node Installation failed with error");
-            Log::error($output);
+            if ($returnCode === 0) {
+                Log::info("NymInstallJob: Node Installation Start Successfully.");
+                Log::info($output);
+            } else {
+                Log::info("NymInstallJob: Node Installation failed with error");
+                Log::error($output);
+            }
+        } catch (Exception $e) {
+            Log::error("NymInstallJob: An exception occurred while executing the command: " . $e->getMessage());
         }
     }
 }

@@ -22,7 +22,7 @@ header .header-right .login a,
         </div>
         <div class="about-section2">
             <div class="container">
-                <div class="title">The advantage of staking your assets today</div>
+                <div class="title">The advantage of staking your assets today ss</div>
                 <div class="row">
                     <div class="col-sm-3">
                         <div class="items item1">

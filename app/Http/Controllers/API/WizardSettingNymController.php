@@ -204,6 +204,10 @@ class WizardSettingNymController extends BaseController
                         return $this->sendError('Error', ['error'=>'WizardSettingNym log not found, Please try again'],404);
                     }
                 }
+                if(isset($wizardSettingNym->server_id) && $wizardSettingNym->server_id)
+                {
+                    return $this->sendError('Error', ['error'=>'The Server already created.'],404);
+                }
 
                 $image_name = "ubuntu-20.04";
                 $location_id = $request->location_id;
@@ -229,9 +233,13 @@ class WizardSettingNymController extends BaseController
                 if(isset($apiResponse['server']['id']))
                 {
                     $datacenter = (isset($apiResponse['server']['datacenter']))? $apiResponse['server']['datacenter']:"";
+                    $location = (isset($datacenter['location']))? $datacenter['location']:"";
 
                     $wizardSettingNym->data_center_id = (isset($datacenter['id']) && $datacenter['id'])? $datacenter['id']:"";
                     $wizardSettingNym->server_id = $apiResponse['server']['id'];
+                    $wizardSettingNym->country = (isset($location['country']) && $location['country'])? $location['country']:"";
+                    $wizardSettingNym->city = (isset($location['city']) && $location['city'])? $location['city']:"";
+                    $wizardSettingNym->data_center_type = ($data_center_type)? $data_center_type:"Hetzner";
                 }
                 $wizardSettingNym->installation_json = ($serverData)? json_encode($serverData):"";
                 $wizardSettingNym->installation_log = ($apiResponse)? json_encode($apiResponse):"";
@@ -380,8 +388,11 @@ class WizardSettingNymController extends BaseController
                     return $this->sendError('Error', ['error'=>'installation command not found, Please try again'],404);
                 }
 
-                $details['command'] = $installCommand;
+                $details['command'] = str_replace(array('{NODE_ID}', '{node_id}'), array($model->node_id, $model->node_id), $installCommand);
+
                 dispatch(new NymInstallJob($details));
+
+                NymNodeLog::create(['node_id'=>$model->node_id,'response_json'=>$details['command']]);
 
                 return $this->sendResponse([], 'Node Installation Start Successfully.');
 
