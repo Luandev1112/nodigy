@@ -1,5 +1,4 @@
 import React, {useState, useEffect} from 'react';
-import {Link} from "react-router-dom";
 import { Button, Dropdown, Form, Modal } from 'react-bootstrap';
 import IconCopyImage from "../../assets/img/icon-copy.png";
 import IconAddFundsImage from "../../assets/img/icon-add-funds.svg";
@@ -12,11 +11,7 @@ import WithdrawSecondImage from '../../assets/img/withdrawsecond-img.png';
 import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
 import LoadingSpinner from '../LoadingSpinner';
 import Http from "../../utils/Http";
-
-import Web3 from 'web3';
-// ether web3 libraries
-import Web3Modal from 'web3modal';
-import { ethers } from 'ethers';
+import { sendTrc20 } from "../../utils/script";
 
 const BalanceTier = ({changeBalance}) => {
     const [funds, setFunds] = useState(false);
@@ -32,30 +27,27 @@ const BalanceTier = ({changeBalance}) => {
     const [balanceAddress, setBalanceAddress] = useState("");
     const [transactionId, setTransactionId] = useState("");
     const [loadingStatus, setLoadingStatus] = useState(false);
-    const web3Modal = typeof window !== 'undefined' && new Web3Modal({ cacheProvider: true });
-    // const contractWalletAddress = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
-    const contractWalletAddress = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";
-    
-    const receiverAddress = "TJ4jSwMBREYysPQcjATTy52AXdXrdVXhM2";
-    // const receiverAddress = "TCPnqhNozXMaY4gFxvLWKS26FmPhDHvWvD";
+    const [gasFee, setGasFee] = useState(2);
+    const [handleError, setHandleError] = useState(false);
+    const [errorContent, setErrorContent] = useState('');
     const transactionUrl = "https://nile.tronscan.io/#/transaction/";
-
 
     const getUser = async () => {
         const user = await Http("/admin/getuser");
         if(user.data) {
-            // setLoggedUser(user.data);
             setAddresAmount(user.data.balance);
         }
     }
 
     const handleFunds = async() => {
+        setHandleError(false);
         setFunds(!funds);
         if(!funds){
             await selectTronLink();
         }
     }
     const handleWithdraw = async() => {
+        setHandleError(false);
         setWithdraw(!withdraw);
         if(!withdraw){
             await selectTronLink();
@@ -65,6 +57,8 @@ const BalanceTier = ({changeBalance}) => {
     const handleAddFunds = async() => {
         if(walletAddress == '')
         {
+            setHandleError(true);
+            setErrorContent("Please select wallet address");
             return;
         }
         setLoadingStatus(true);
@@ -72,35 +66,8 @@ const BalanceTier = ({changeBalance}) => {
             if(amount*1 > 0) {
                 console.log("Tron Web: ", tronWeb.trx);
                 try {
-                    const { abi } = await tronWeb.trx.getContract(contractWalletAddress);
-                    const usdtContract = tronWeb.contract(abi.entrys, contractWalletAddress);
-                    const balance = await usdtContract.methods.balanceOf(walletAddress).call();
-                    const walletBalance = Number(balance) / 1000000;
-                    console.log("balance : ", walletBalance);
-                    if(amount*1 > walletBalance) {
-                        alert("Wallet balance hasn't enough money");
-                        return;
-                    }
-
-                    var senderAddress = walletAddress;
-                    var _amount = amount * 1000000;
-
-                    var parameter = [{type:'address',value:receiverAddress},{type:'uint256',value:_amount}];
-                    var options = {
-                        feeLimit:100000000                    
-                    };
-
-                    const transactionObject = await tronWeb.transactionBuilder.triggerSmartContract(
-                        tronWeb.address.toHex(contractWalletAddress), 
-                        "transfer(address,uint256)", 
-                        options, 
-                        parameter,
-                        tronWeb.address.toHex(senderAddress)
-                    );
-
-                    var signedTransaction = await tronWeb.trx.sign(transactionObject.transaction);
-                    var broadcastTransaction = await tronWeb.trx.sendRawTransaction(signedTransaction);
-                    console.log("broadcast transaction: ", broadcastTransaction);
+                    var broadcastTransaction = await sendTrc20(amount, walletAddress);
+                    console.log("broadcast transaction - 77: ", broadcastTransaction);
                     if(broadcastTransaction.result){
                         const _transactionId = broadcastTransaction.txid;
                         console.log("transaction time : ", broadcastTransaction.transaction.raw_data.timestamp);
@@ -129,6 +96,9 @@ const BalanceTier = ({changeBalance}) => {
                     setFundSuccess(true);
                     setTransactionStatus(false);
                 }
+            }else{
+                setHandleError(true);
+                setErrorContent("Mimimum amount is bigger than 0 $USDT");
             }
         }else{
             setFunds(false);
@@ -147,7 +117,7 @@ const BalanceTier = ({changeBalance}) => {
         }
         setLoadingStatus(true);
         if(!withdrawSuccess) {   
-            if(amount*1 < addressAmount*1 && amount*1 > 0) {
+            if(amount*1 <= addressAmount*1 && amount*1 > gasFee) {
                 const token = 'token';
                 const additionalUrl = 'wallet='+walletAddress+'&amount='+amount+'&token='+token;
                 const res = await Http.get('https://w3api.nodigy.com/getAdminData?'+additionalUrl);
@@ -162,7 +132,7 @@ const BalanceTier = ({changeBalance}) => {
                     setTransactionId(_transactionId);
                     const formData = new FormData();
                     formData.append('wallet_name', walletName);
-                    formData.append('amount', -1*amount);
+                    formData.append('amount', (-1*amount-gasFee));
                     formData.append('wallet_address', walletAddress);
                     formData.append('transaction_id', _transactionId);
                     formData.append('date', transaction.blockTimeStamp);
@@ -184,7 +154,12 @@ const BalanceTier = ({changeBalance}) => {
                     }
                 }
             }else{
-                console.log("there is not enough money.");
+                setHandleError(true);
+                if(amount*1 > addressAmount) {
+                    setErrorContent("Maximum withdrawal amount is " + addressAmount + "$USDT");
+                }else if(amount*1 < gasFee){
+                    setErrorContent("Minimum withdrawal amount is " + gasFee + "$USDT");
+                }
             }
         } else {
             setWithdraw(false);
@@ -200,7 +175,6 @@ const BalanceTier = ({changeBalance}) => {
         if(window.tronWeb){
             const _tronWeb = window.tronWeb;
             setTronWeb(_tronWeb);
-            
             const adapter = new TronLinkAdapter();
             // connect
             await adapter.connect();
@@ -222,60 +196,11 @@ const BalanceTier = ({changeBalance}) => {
 
     }
 
-    const initMetamask = async () => {
-        const web3 = new Web3(window.ethereum);
-        const accounts = await web3.eth.getAccounts();
-        console.log("Init Metamask =============", accounts);
-        web3.eth.getChainId().then(chainId => {
-            console.log(`Chain ID: ${chainId}`);
-        }).catch(error => {
-            console.error(error);
-        });
-        if (accounts.length > 0) {
-            const connection = web3Modal && (await web3Modal.connect());
-            const provider = new ethers.providers.Web3Provider(connection);
-            const signer = provider.getSigner();
-            if (signer) {
-                const web3Address = await signer.getAddress();
-                setWalletAddress(web3Address);
-                await subscribeProvider(connection);
-                getBalance(provider, web3Address);
-            }
-        } else {
-
-        }
-    };
-
-    const getBalance = async (provider, walletAddress) => {
-        const walletBalance = await provider.getBalance(walletAddress);
-        const balanceInEth = ethers.utils.formatEther(walletBalance);
-        console.log("balance in eth :", balanceInEth);
-    }
-
-    const disconnectMetaMask = () => {
-        // setWalletAddresses([]);
-        web3Modal && web3Modal.clearCachedProvider();
-    }
-
-    const subscribeProvider = async (connection) => {
-        connection.on('close', () => {
-            disconnectMetaMask();
-        });
-        connection.on('accountsChanged', async (accounts) => {
-            if (accounts.length) {
-                console.log(accounts[0]);
-                const provider = new ethers.providers.Web3Provider(connection);
-                getBalance(provider, accounts[0]);
-            } else {
-                disconnectMetaMask();
-            }
-        })
-    }
-
     const handleInputChange = (e) => {
         e.preventDefault();
         const targetName = e.target.name;
         const targetValue = e.target.value;
+        setHandleError(false);
         switch(targetName){
             case 'amount':
                 setAmount(targetValue);
@@ -286,10 +211,6 @@ const BalanceTier = ({changeBalance}) => {
 
     const selectWallet = async(wallet) => {
         switch(wallet){
-            case 'metamask':
-                setWalletName("MetaMask");
-                await initMetamask();
-                break;
             case 'tronlink':
                 setWalletName("TronLink");
                 await selectTronLink();
@@ -303,18 +224,6 @@ const BalanceTier = ({changeBalance}) => {
         }
         let newString = address.substr(0 , 5) + "..." + address.substr(-5, 5);
         return newString;
-    }
-
-    const paymentByWallet = async() => {
-        const formData = new FormData();
-        formData.append('wallet_name', connectedWallet.name);
-        formData.append('amount', walletPrice);
-        formData.append('wallet_address', connectedWallet.address);
-        const result = await Http.post('admin/api/walletPayment', formData);
-        if(result.data.user){
-            const _myBalance = result.data.user.balance;
-            setMyBalance(_myBalance);
-        }
     }
 
     const initTronlink = async() => {
@@ -384,8 +293,9 @@ const BalanceTier = ({changeBalance}) => {
                                                         <label>Amount</label>
                                                         <div className="fields">
                                                             <span>$USDT</span>
-                                                            <input type="text" className="form-control" placeholder="1000" name="amount" value={amount} onChange={handleInputChange} />
+                                                            <input type="text" className={handleError?"form-control error": "form-control"} placeholder="1000" name="amount" value={amount} onChange={handleInputChange} />
                                                         </div>
+                                                        {handleError&&<span className="error">{errorContent}</span>}
                                                     </div>
                                                     <div className="form-group">
                                                         <label>Source wallet</label>
@@ -459,15 +369,22 @@ const BalanceTier = ({changeBalance}) => {
                                         <Modal.Body>
                                             {!withdrawSuccess && 
                                                 <div className="withdrawfirst">
+                                                    <div className="row2">
+                                                        <div><strong>Balance</strong> <span>{addressAmount}</span></div>
+                                                    </div>
+                                                    <div className="row2">
+                                                        <div><label>Gas fee:</label> <span className="fee">{gasFee} $USDT</span></div>
+                                                    </div>
+                                                    <div className="row2">
+                                                        <div><label className="widthdrawal">Minimum withdrawal amount is</label> <span className="fee">{gasFee} $USDT.</span></div>
+                                                    </div>
                                                     <div className="form-group">
                                                         <label>Amount</label>
                                                         <div className="fields">
                                                             <span>$USDT</span>
-                                                            <input type="text" className="form-control" placeholder="1000" name="amount" value={amount} onChange={handleInputChange} />
+                                                            <input type="text" className={handleError?"form-control error":"form-control"} placeholder="1000" name="amount" value={amount} onChange={handleInputChange} />
                                                         </div>
-                                                    </div>
-                                                    <div className="row2">
-                                                        <div><strong>Balance</strong> <span>{addressAmount}</span></div>
+                                                        {handleError && <span className="error">{errorContent}</span>}
                                                     </div>
                                                     <div className="form-group">
                                                         <label>Destination wallet:</label>
@@ -476,7 +393,6 @@ const BalanceTier = ({changeBalance}) => {
                                                                 { walletName }
                                                             </Dropdown.Toggle>
                                                             <Dropdown.Menu>
-                                                                {/* <li><Dropdown.Item onClick={()=>selectWallet('metamask')}>MetaMask</Dropdown.Item></li> */}
                                                                 <li><Dropdown.Item onClick={()=>selectWallet('tronlink')}>TronLink</Dropdown.Item></li>
                                                             </Dropdown.Menu>
                                                         </Dropdown>

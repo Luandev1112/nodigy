@@ -1,12 +1,13 @@
 import {useState, useRef} from "react";
 import {Link} from "react-router-dom";
 import LogoImage from "../../assets/img/logo.svg";
-import IconDashboardImage from "../../assets/img/icon-dashboard.svg"
-import IconWalletsImage from "../../assets/img/icon-wallets.svg"
-import IconBalanceImage from "../../assets/img/icon-my-balance.svg"
-import IconNodeImage from "../../assets/img/icon-node.svg"
-import IconHelpImage from "../../assets/img/icon-get-help.svg"
-import IconSettingsImage from "../../assets/img/icon-settings.svg"
+import IconDashboardImage from "../../assets/img/icon-dashboard.svg";
+import IconWalletsImage from "../../assets/img/icon-wallets.svg";
+import IconBalanceImage from "../../assets/img/icon-my-balance.svg";
+import IconNodeImage from "../../assets/img/icon-node.svg";
+import IconHelpImage from "../../assets/img/icon-get-help.svg";
+import IconSettingsImage from "../../assets/img/icon-settings.svg";
+import Disclamer from "../../components/Disclamer";
 
 
 const Sidebar = ({menu}) => {
@@ -72,6 +73,7 @@ const Sidebar = ({menu}) => {
                     </ul>
                 </div>
             </div>
+            <Disclamer />
         </>
     )
 }

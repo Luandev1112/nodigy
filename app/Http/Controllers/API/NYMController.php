@@ -13,6 +13,7 @@ use App\Models\Chain;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
+use App\Models\WizardSettingNym;
 
 class NYMController extends BaseController
 {    
@@ -152,9 +153,27 @@ class NYMController extends BaseController
         $node_cond = array();
         $node_cond['project_id'] = $project->id;
         $node_cond['user_id'] = $user->id;
+        $node_cond['node_status'] = 0;
         $node = Node::where($node_cond)->first();
         $node->description = $wallet_address;
         $node->save();
+
+        $settingCond = array();
+        $settingCond['project_id'] = $project->id;
+        $settingCond['node_id'] = $node->id;
+        $settingCond['user_id'] = $user->id;
+
+        $wizardSetting = WizardSettingNym::where($settingCond)->first();
+        if($wizardSetting){
+            $wizardSetting->wallet = $wallet_address;
+            $wizardSetting->save();
+        }else{
+            $result = array();
+            $result['status'] = 0;
+            $result['error'] = "There is not setting data";
+            return response()->json($result, 401);
+        }
+
         return response()->json($node, 200);
     }
 
@@ -167,6 +186,7 @@ class NYMController extends BaseController
         $node_cond = array();
         $node_cond['project_id'] = $project->id;
         $node_cond['user_id'] = $user->id;
+        $node_cond['node_status'] = 0;
         $node = Node::where($node_cond)->first();
         $result['wallet'] = $node->description;
         return response()->json($result, 200);
@@ -181,6 +201,15 @@ class NYMController extends BaseController
         $node->server_id = $server_id;
         $result = $node->save();
         return response()->json($result, 200);
+    }
+
+    public function setNodeStatus(Request $request)
+    {
+        $node_id = $request->node_id;
+        $node = Node::where('id', $node_id)->first();
+        $node->node_status = $request->node_status;
+        $node->save();
+        return response()->json($node, 200);
     }
 
 }

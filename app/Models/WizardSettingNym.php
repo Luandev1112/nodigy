@@ -37,5 +37,8 @@ class WizardSettingNym extends Model
         'step_description',
         'installation_log',
         'progress_status',
+        'full_step',
+        'now_step',
+        'previous_succesfull_step',
     ];
 }

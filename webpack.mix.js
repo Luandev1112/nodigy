@@ -37,5 +37,5 @@ if (mix.inProduction()) {
 }
 
 if (!mix.inProduction()) {
-  mix.browserSync('http://localhost')
+  mix.browserSync('http://nodigy.test')
 }

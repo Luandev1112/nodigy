@@ -5,7 +5,6 @@ import DashboardTier from '../components/dashboard/DashboardTier';
 import DashboardTable from '../components/dashboard/DashboardTable';
 import { Accordion, Card, Button, Dropdown } from 'react-bootstrap';
 import tableData from '../data/dashboard/DashboardTable.json';
-import Disclamer from '../components/Disclamer';
 const Dashboard = ({setPath}) => {
     
     useEffect(()=>{
@@ -19,7 +18,6 @@ const Dashboard = ({setPath}) => {
                 <DashboardTier />
                 <DashboardTable data={tableData} />
             </div>
-            <Disclamer />
         </div>
     )
 }

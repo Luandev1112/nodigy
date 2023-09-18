@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import Http from "../../utils/Http";
-import { id } from 'ethers/lib/utils';
 const Step2 = ({chooseProject, project}) => {
     const [networkType, setNetworkType] = useState('all');
     const [projects, setProjects] = useState([]);

@@ -1,9 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import { Button, Dropdown, Form, Modal } from 'react-bootstrap';
-import IconEmptyWallet from "../../assets/img/icon-empty-wallet.png";
 import Http from "../../utils/Http";
 import Web3Modal, { providers } from 'web3modal';
-import {ethers} from 'ethers';
 import { Connection, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 import { BraavosConnector } from '@web3-starknet-react/braavos-connector';
 import TronWeb from 'tronweb';
@@ -28,6 +26,8 @@ const TopupAccount = ({setStep, setSubStep, setMyBalance, balanceType}) => {
     const [walletInstalled, setWalletInstalled] = useState(false);
     const [maxToken, setMaxToken] = useState(0);
     const mediaUrl = "https://static.nodigy.com/";
+
+    const ethers = require("ethers");
 
     const web3Modal = typeof window !== 'undefined' && new Web3Modal({ cacheProvider: true });
     const braavosWalletConnector = new BraavosConnector({ supportedChainIds: [1,5] });

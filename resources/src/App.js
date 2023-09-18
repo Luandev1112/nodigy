@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {BrowserRouter as Router, Switch, Route} from 'react-router-dom';
-import PageScrollTop from './components/pageToTop/PageScrollTop'
+import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import Http from "./utils/Http";
 // Pages import Here 
 import Dashobard from "./pages/Dashboard";
@@ -43,24 +42,23 @@ const App = () => {
         <Router>
         {
             isLogin && (
-            <PageScrollTop>
-                <Switch>
-                    <Route exact path="/" render={ () => <Dashobard setPath={setPath} />} ></Route>
-                    <Route path="/admin" exact render={ () => <Dashobard setPath={setPath} />} />
-                    <Route path="/admin/dashboard" exact render={ () => <Dashobard setPath={setPath} />} />
-                    <Route path="/admin/wallets" exact render={ () => <Wallets setPath={setPath} />} />
-                    <Route path="/admin/mybalance" exact component={MyBalance}/>
-                    <Route path="/admin/delegation" exact component={Delegation}/>
-                    <Route path="/admin/node" exact component={Node}/>
-                    <Route path="/admin/wallet-details"exact component={WalletDetail}/>
-                    <Route path="/admin/delegatin-details" exact component={DelegationDetails}/>
-                    <Route path="/admin/emails-setting" exact component={EmailSetting}/>
-                    <Route path="/admin/notifications-setting" exact component={NotificationsSetting}/>
-                    <Route path="/admin/social-accounts" exact component={SocialsSetting}/>
-                    <Route path="/admin/wallet-connect" exact component={WalletConnect}/>
-                    <Route path="/error" exact component={Error}/>
-                </Switch>
-            </PageScrollTop>)
+                <Routes>
+                    <Route exact path="/" element={<Dashobard setPath={setPath} />} />
+                    <Route path="/admin" element={<Dashobard setPath={setPath} />} />
+                    <Route path="/admin/dashboard" element={<Dashobard setPath={setPath} />} />
+                    <Route path="/admin/wallets" element={<Wallets setPath={setPath} />} />
+                    <Route path="/admin/mybalance" element={<MyBalance />} />
+                    <Route path="/admin/delegation" element={<Delegation />} />
+                    <Route path="/admin/node" element={<Node />}/>
+                    <Route path="/admin/wallet-details" element={<WalletDetail />}/>
+                    <Route path="/admin/delegatin-details" element={<DelegationDetails />}/>
+                    <Route path="/admin/emails-setting" element={<EmailSetting />}/>
+                    <Route path="/admin/notifications-setting" element={<NotificationsSetting />}/>
+                    <Route path="/admin/social-accounts" element={<SocialsSetting />}/>
+                    <Route path="/admin/wallet-connect" element={<WalletConnect />}/>
+                    <Route path="/error" element={Error}/>
+                </Routes>
+            )
         }
         </Router>
     )

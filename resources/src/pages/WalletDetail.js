@@ -17,7 +17,6 @@ const PHANTOM_WALLET_PUBLIC_KEY = "https://cdn.jsdelivr.net/npm/@solana/wallet-a
 import Web3 from 'web3';
 // ether web3 libraries
 import Web3Modal from 'web3modal';
-import { ethers } from 'ethers';
 import TronWeb from 'tronweb';
 import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
 import {
@@ -46,10 +45,9 @@ const WalletDetail = () => {
     const [networkList, setNetworkList] = useState([]);
     const [braavosWallet, setBraavosWallet] = useState('');
     const [editShow, setEditShow] = useState(false);
-
     const [editTab, setEditTab] = useState('');
     const [editIndex, setEditIndex] = useState(0);
-
+    const ethers = require("ethers");
     const web3Modal = typeof window !== 'undefined' && new Web3Modal({ cacheProvider: true });
     const braavosWalletConnector = new BraavosConnector({ supportedChainIds: [1, 5] });
     const mediaUrl = "https://static.nodigy.com/";

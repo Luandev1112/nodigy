@@ -173,6 +173,20 @@ class HetznerApiService
         return false;
     }
 
+    // ServerActions
+    // changeDnsPtr server
+    public function changeDnsPtr($serverId,$parameters)
+    {
+        try {
+            return $this->client->server_actions->changeDnsPtr($serverId, $parameters);
+        } catch (Exception $e) {
+            $message = getErrorMessage($e, $e->getMessage());
+            Log::info($message);
+            return ['error'=>$message];
+        }
+        return false;
+    }
+
     public function geHetznerApiData($method)
     {
         try {

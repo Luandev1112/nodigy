@@ -10,9 +10,6 @@ import ProfileImage from "../assets/img/profile-img.png";
 
 import Step1 from "../components/wallet/step1.js";
 import Step2 from "../components/wallet/step2.js";
-import Step3 from "../components/wallet/step3.js";
-import Step4 from "../components/wallet/step4.js";
-import Fiat1 from "../components/wallet/fiat1.js";
 import WalletList from "../components/wallet/WalletList.js";
 import ChooseServer from "../components/wallet/ChooseServer.js";
 import TopupAccount from "../components/wallet/TopupAccount.js";
@@ -45,8 +42,8 @@ const WalletConnect = () => {
     const [wallet, setWallet] = useState(null);
     const [chain, setChain] = useState(null);
 
-    const nymUrl = "https://nym.nodigy.com";
-    // const nymUrl = "http://localhost:3000";
+    // const nymUrl = "https://nym.nodigy.com";
+    const nymUrl = "http://localhost:3000";
 
     const changeMode = () => {
         darkMode ? setDarkMode(false) : setDarkMode(true);

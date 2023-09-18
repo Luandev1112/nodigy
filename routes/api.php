@@ -64,23 +64,16 @@ Route::group(['middleware' => ['verifyBearerToken']], function () {
         Route::post('/delete-server', 'API\WizardSettingNymController@deleteServer');
         Route::post('/view-server', 'API\WizardSettingNymController@viewServer');
         Route::post('/node-installation-start', 'API\WizardSettingNymController@nodeInstallationStart');
+        Route::post('/add-first-signature', 'API\WizardSettingNymController@addFirstSignature');
+
+        Route::post('/log-installation-store', 'API\WizardSettingNymController@logInstallationStore');
+        Route::post('/log-installation-view', 'API\WizardSettingNymController@logInstallationView');
     });
     Route::group(['prefix' => 'hetzner-api'], function () {
-        Route::get('/all-locations', 'API\HetznerApiController@getAllLocations');
-        Route::get('/all-datacenters', 'API\HetznerApiController@getAllDatacenters');
-        Route::get('/all-images', 'API\HetznerApiController@getAllImages');
-        Route::get('/all-networks', 'API\HetznerApiController@getAllNetworks');
-        Route::get('/all-pricing', 'API\HetznerApiController@getAllPricing');
-        Route::get('/all-volumes', 'API\HetznerApiController@getAllVolumes');
-        Route::get('/all-isos', 'API\HetznerApiController@getAllIsos');
-        Route::get('/all-server-types', 'API\HetznerApiController@getAllServerTypes');
-        Route::get('/all-placement-groups', 'API\HetznerApiController@getAllPlacementGroups');
-
         Route::get('/project-servers/{name}', 'API\HetznerApiController@getProjectServers');
     });
 
     Route::group(['prefix' => 'convert-price'], function () {
-        Route::post('/euro-to-usdt', 'API\ConvertPriceController@getEuroToUSDT');
         Route::get('/get-exchange-rate/euro', 'API\ConvertPriceController@getEuroExchangeRate');
     });
 
@@ -96,4 +89,5 @@ Route::group(['middleware' => ['verifyBearerToken']], function () {
     Route::post('/addWallet', 'API\NYMController@addWallet');
     Route::post('/getNodeWallet', 'API\NYMController@getNodeWallet');
     Route::post('/save-server-id', 'API\NYMController@saveServerId');
+    Route::post('/set-node-status', 'API\NYMController@setNodeStatus');
 });

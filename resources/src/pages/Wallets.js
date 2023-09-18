@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Http from "../utils/Http";
 import Sidebar from '../common/header/Sidebar';
 import HeaderTopBar from '../common/header/HeaderTopBar';
@@ -13,13 +13,11 @@ import { SigningStargateClient, makeSignDoc } from "@cosmjs/stargate";
 import { BraavosConnector } from '@web3-starknet-react/braavos-connector';
 // import Web3 from 'web3';
 import Web3Modal, { providers } from 'web3modal';
-import {ethers} from 'ethers';
 // Tron
 import TronWeb from 'tronweb';
 import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
 
 const Wallets = ({setPath}) => {
-    const history = useHistory();
     const [show, setShow] = useState(false);
     const [selectedNetworkIndex, setSelectedNetworkIndex] = useState(-1);
     const [networkList, setNetworkList] = useState([]);
@@ -34,8 +32,12 @@ const Wallets = ({setPath}) => {
     const [connected, setConnected] = useState(false);
     const [braavosWallet, setBraavosWallet] = useState(null);
     // braavos wallet
+    const ethers = require("ethers");
     const braavosWalletConnector = new BraavosConnector({ supportedChainIds: [1,5] });
     const mediaUrl = "https://static.nodigy.com/";
+
+    const navigate = useNavigate();
+
     const handleClose = () => {
         setShow(!show);
     }
@@ -44,7 +46,7 @@ const Wallets = ({setPath}) => {
         const res = await Http.get('/admin/api/checkeInstalledWallets');
         console.log("user wallet data : ", res.data);
         if(res.data.result == 1) {
-            history.push('/admin/wallet-details');
+            navigate('/admin/wallet-details');
         }else{
             console.log("this page");
         }
@@ -281,16 +283,6 @@ const Wallets = ({setPath}) => {
             setConnectionStatus(false);
             alert("Please install TronLink Wallet");
         }
-        
-        // const targetAddress = "TCPnqhNozXMaY4gFxvLWKS26FmPhDHvWvD";
-        // // create a send TRX transaction
-        // const unSignedTransaction = await tronWeb.transactionBuilder.sendTrx(targetAddress, 10, adapter.address);
-        // // using adapter to sign the transaction
-        // const signedTransaction = await adapter.signTransaction(unSignedTransaction);
-        // // broadcast the transaction
-        // const transactionResult = await tronWeb.trx.sendRawTransaction(signedTransaction);
-        // console.log(transactionResult);
-
     }
 
     const getNetwork = async () => {
@@ -319,7 +311,7 @@ const Wallets = ({setPath}) => {
         setPath('wallets');
         getNetwork();
         if(connectionStatus){
-            window.location.href = "/admin/wallet-details";
+            navigate("/admin/wallet-details");
         }
     }, [connectionStatus]);
 

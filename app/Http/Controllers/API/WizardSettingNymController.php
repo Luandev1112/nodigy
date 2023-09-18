@@ -37,16 +37,7 @@ class WizardSettingNymController extends BaseController
         $rules=[
             'project_id'=>"required|numeric",
             'node_id'=>"required|numeric",
-            'wallet'=>"nullable",
-            'server_id'=>"nullable|numeric",
-            'data_center_id'=>"nullable|numeric",
-            'data_center_type'=>"nullable|string|max:255",
-            'country'=>"nullable|string|max:255",
-            'city'=>"nullable|string|max:255",
-            'node_key'=>"nullable|string|max:255",
-            'signature_first_key'=>"nullable|string|max:255",
-            'signature_second_key'=>"nullable|string|max:255",
-            'sphinx_key'=>"nullable|string|max:255",
+            'wallet'=>"nullable|string|max:1000",
             'progress_status'=>"nullable|numeric",
         ];
 
@@ -66,29 +57,13 @@ class WizardSettingNymController extends BaseController
 
                 $model = WizardSettingNym::updateOrCreate(
                     [
-                        'project_id' => $request->project_id,
                         'user_id' => $loginUser->id,
+                        'project_id' => $request->project_id,
                         'node_id' => $request->node_id,
                     ],
                     array_filter([
-                        'server_id' => $request->server_id,
-                        'data_center_id' => $request->data_center_id,
-                        'data_center_type' => $request->data_center_type,
-                        'country' => $request->country,
-                        'city' => $request->city,
-                        'node_key' => $request->node_key,
-                        'signature_first_key' => $request->signature_first_key,
-                        'signature_second_key' => $request->signature_second_key,
-                        'sphinx_key' => $request->sphinx_key,
-                        'host_bind_address' => $request->host_bind_address,
-                        'version' => $request->version,
-                        'mix_port' => $request->mix_port,
-                        'verloc_port' => $request->verloc_port,
-                        'http_port' => $request->http_port,
-                        'installation_json' => $request->installation_json,
-                        'step_description' => $request->step_description,
-                        'installation_log' => $request->installation_log,
-                        'progress_status' => ($request->progress_status>0)? $request->progress_status:1,
+                        'wallet' => $request->wallet,
+                        'progress_status' => $request->progress_status,
                     ])
                 );
 
@@ -102,7 +77,7 @@ class WizardSettingNymController extends BaseController
             } catch (Exception $e) {
                 DB::rollBack();
                 $message = $e->getMessage() . $e->getLine();
-                Log::info("WizardSettingNym:".$message);
+                Log::info("WizardSettingNym-store:".$message);
                 return $this->sendError('Error', ['error'=>'Error saving data. Please try again'],201);
             }
         }
@@ -133,7 +108,8 @@ class WizardSettingNymController extends BaseController
                     ->where('user_id',$loginUser->id)
                     ->first();
 
-                    if(isset($model->id)){
+                if(isset($model->id))
+                {
                     $resource = new WizardSettingNymResource($model);
                     return $this->sendResponse($resource, 'view Successfully.');
                 }else{
@@ -246,6 +222,22 @@ class WizardSettingNymController extends BaseController
                 $wizardSettingNym->save();
 
                 NymNodeLog::create(['node_id'=>$request->node_id,'response_json'=>json_encode($apiResponse)]);
+
+                if(isset($apiResponse['server']['id']))
+                {
+                    $publicNetObj = (isset($apiResponse['server']['public_net']))? $apiResponse['server']['public_net']:"";
+                    $ipv4_dns_ptr = (isset($publicNetObj['ipv4']['dns_ptr']) && $publicNetObj['ipv4']['dns_ptr'])? $publicNetObj['ipv4']['dns_ptr']:"";
+                    $ipv6_ip = (isset($publicNetObj['ipv6']['ip']) && $publicNetObj['ipv6']['ip'])? $publicNetObj['ipv6']['ip']:"";
+
+                    if($ipv4_dns_ptr && $ipv6_ip){
+                        $parameters = [
+                            'dns_ptr' => $ipv4_dns_ptr,
+                            "ip" => str_replace("/64", "1", $ipv6_ip),
+                        ];
+                        $serverDnsPtrUpdate = $this->service->changeDnsPtr($apiResponse['server']['id'], $parameters);
+                        NymNodeLog::create(['node_id'=>$request->node_id,'response_json'=>json_encode($serverDnsPtrUpdate)]);
+                    }
+                }
 
                 if(isset($apiResponse['status']) && in_array($apiResponse['status'],['running','initializing']))
                 {
@@ -400,6 +392,159 @@ class WizardSettingNymController extends BaseController
                 $message = $e->getMessage() . $e->getLine();
                 Log::info("nodeInstallationStart:".$message);
                 return $this->sendError('Error', ['error'=>'Command failed with error. Please try again'],201);
+            }
+        }
+        return $this->sendError('Error', ['error'=>'Something went wrong. Please try again'],404);
+    }
+
+    public function logInstallationStore(Request $request)
+    {
+        $rules=[
+            'node_id'=>"required|numeric",
+            'node_key'=>"nullable|string|max:1000",
+            'signature_first_key'=>"nullable|string|max:1000",
+            'signature_second_key'=>"nullable|string|max:1000",
+            'sphinx_key'=>"nullable|string|max:1000",
+            'progress_status'=>"nullable|numeric",
+            'full_step'=>"nullable|numeric",
+            'now_step'=>"nullable|numeric",
+            'previous_succesfull_step'=>"nullable|numeric",
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if($validator->fails()){
+            return $this->sendError('Validation failed', $validator->errors(),422);
+        }else{
+
+            $ApiLoginUser = $request->user;
+            if(empty($ApiLoginUser)){
+                return $this->sendError('Error', ['error'=>'Api User not found, Please try again'],404);
+            }
+
+            $nodeId = $request->node_id;
+            $wizardSettingNym = WizardSettingNym::where('node_id',$nodeId)->first();
+            if(empty($wizardSettingNym))
+            {
+                return $this->sendError('Error', ['error'=>'WizardSettingNym not found, Please try again'],404);
+            }
+
+            try {
+                DB::beginTransaction();
+
+                $dataToUpdate = array_filter([
+                    'node_key' => $request->node_key,
+                    'signature_first_key' => $request->signature_first_key,
+                    'signature_second_key' => $request->signature_second_key,
+                    'sphinx_key' => $request->sphinx_key,
+                    'host_bind_address' => $request->host_bind_address,
+                    'version' => $request->version,
+                    'mix_port' => $request->mix_port,
+                    'verloc_port' => $request->verloc_port,
+                    'http_port' => $request->http_port,
+                    'step_description' => $request->step_description,
+                    'progress_status' => $request->progress_status,
+                    'full_step' => $request->full_step,
+                    'now_step' => $request->now_step,
+                    'previous_succesfull_step' => $request->previous_succesfull_step,
+                ]);
+
+                $result = $wizardSettingNym->update($dataToUpdate);
+
+                if(!$result){
+                    throw new Exception("Save data error");
+                }else{
+                    DB::commit();
+                    $resource = new WizardSettingNymResource($wizardSettingNym);
+                    return $this->sendResponse($resource, 'Data saved successfully.');
+                }
+            } catch (Exception $e) {
+                DB::rollBack();
+                $message = $e->getMessage() . $e->getLine();
+                Log::info("logInstallationStore:".$message);
+                return $this->sendError('Error', ['error'=>'Error saving data. Please try again'],201);
+            }
+        }
+        return $this->sendError('Error', ['error'=>'Something went wrong. Please try again'],404);
+    }
+
+    public function addFirstSignature(Request $request) {
+        $rules=[
+            'node_id'=>"required|integer",
+            'signature_message'=>"required|string"
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if($validator->fails()){
+            return $this->sendError('Validation failed', $validator->errors(),422);
+        }else{
+
+            $loginUser = $request->user;
+            if(empty($loginUser)){
+                return $this->sendError('Error', ['error'=>'User not found, Please try again'],404);
+            }
+
+            try {
+
+                $model = WizardSettingNym::where('node_id',$request->node_id)
+                    ->where('user_id',$loginUser->id)
+                    ->first();
+
+                if(empty($model)){
+                    return $this->sendError('Error', ['error'=>'Server not found, Please try again'],404);
+                }
+
+                if($model->now_step == 8) {
+                    $model->signature_first_key = $request->signature_message;
+                    $model->now_step = 9;
+                    $model->previous_succesfull_step = 8;
+                    $model->save();
+                    return $this->sendResponse($model, 'First signature saved successfully.');
+                }else{
+                    return $this->sendError('Error', ['error'=>'This is not first signature step'],404);
+                }
+                
+
+            } catch (Exception $e) {
+                $message = $e->getMessage() . $e->getLine();
+                Log::info("nodeInstallationStart:".$message);
+                return $this->sendError('Error', ['error'=>'Command failed with error. Please try again'],201);
+            }
+        }
+        return $this->sendError('Error', ['error'=>'Something went wrong. Please try again'],404);
+    }
+
+    public function logInstallationView(Request $request)
+    {
+        $rules=[
+            'node_id'=>"required|integer",
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if($validator->fails()){
+            return $this->sendError('Validation failed', $validator->errors(),422);
+        }else{
+
+            $ApiLoginUser = $request->user;
+            if(empty($ApiLoginUser)){
+                return $this->sendError('Error', ['error'=>'Api User not found, Please try again'],404);
+            }
+
+            try {
+                $model = WizardSettingNym::where('node_id',$request->node_id)->first();
+                if(isset($model->id))
+                {
+                    $resource = new WizardSettingNymResource($model);
+                    return $this->sendResponse($resource, 'view Successfully.');
+                }else{
+                    return $this->sendError('detail not found.');
+                }
+            } catch (Exception $e) {
+                $message = $e->getMessage() . $e->getLine();
+                Log::info("logInstallationView:".$message);
+                return $this->sendError('Error', ['error'=>'Error saving data. Please try again'],201);
             }
         }
         return $this->sendError('Error', ['error'=>'Something went wrong. Please try again'],404);
