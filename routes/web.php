@@ -45,6 +45,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', 'DashboardController@index')->name('dashboard');
 });
 
+// manually run
+Route::get('/cron/script/{slug}','CronController@scriptName')->middleware(['auth']);
+
 // Clear all cache
 Route::get('/clear', function () {
     Artisan::call('optimize:clear');
@@ -70,6 +73,7 @@ Route::get('admin/api/getAddedUserWallets', 'API\WalletController@getAddedUserWa
 
 Route::get('admin/api/getAllProjects', 'API\WalletConnectionController@getAllProjects');
 Route::post('admin/api/filterNetworkProjects', 'API\WalletConnectionController@filterNetworkProjects');
+Route::post('admin/api/getCryptoRates', 'API\WalletConnectionController@getCryptoRates');
 
 Route::get('admin/api/getAllServers', 'API\WalletConnectionController@getAllServers');
 

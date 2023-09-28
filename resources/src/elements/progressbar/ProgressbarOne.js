@@ -33,13 +33,13 @@ const ProgressbarOne = () => {
     return (
         <>
             {progressData.map((progress) => (
-            <TrackVisibility
-                once
-                key={progress.id}
-                className="single-progress"
-            >
-                <Skill progress={progress} /> 
-            </TrackVisibility>
+              <TrackVisibility
+                  once
+                  key={progress.id}
+                  className="single-progress"
+              >
+                  <Skill progress={progress} /> 
+              </TrackVisibility>
             ))} 
         </>
     )

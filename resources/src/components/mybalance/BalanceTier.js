@@ -1,17 +1,17 @@
 import React, {useState, useEffect} from 'react';
 import { Button, Dropdown, Form, Modal } from 'react-bootstrap';
 import IconCopyImage from "../../assets/img/icon-copy.png";
+import CheckCircleImage from "../../assets/img/icon-check-bullet.svg";
 import IconAddFundsImage from "../../assets/img/icon-add-funds.svg";
 import IconWithdrawImage from "../../assets/img/icon-withdraw.svg";
 import IconExportExlsImage from "../../assets/img/icon-export-to-exls.svg";
 import IconCloseModalImage from '../../assets/img/icon-close-modal.png';
-import IconCopy from '../../assets/img/icon-copy.png';
 import AddFundsImage from '../../assets/img/add-funds-img.png';
 import WithdrawSecondImage from '../../assets/img/withdrawsecond-img.png';
 import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
 import LoadingSpinner from '../LoadingSpinner';
 import Http from "../../utils/Http";
-import { sendTrc20 } from "../../utils/script";
+import { sendTrc20, shortenAddress } from "../../utils/script";
 
 const BalanceTier = ({changeBalance}) => {
     const [funds, setFunds] = useState(false);
@@ -30,6 +30,7 @@ const BalanceTier = ({changeBalance}) => {
     const [gasFee, setGasFee] = useState(2);
     const [handleError, setHandleError] = useState(false);
     const [errorContent, setErrorContent] = useState('');
+    const [copyContent, setCopyContent] = useState('');
     const transactionUrl = "https://nile.tronscan.io/#/transaction/";
 
     const getUser = async () => {
@@ -66,7 +67,7 @@ const BalanceTier = ({changeBalance}) => {
             if(amount*1 > 0) {
                 console.log("Tron Web: ", tronWeb.trx);
                 try {
-                    var broadcastTransaction = await sendTrc20(amount, walletAddress);
+                    let broadcastTransaction = await sendTrc20(amount, walletAddress);
                     console.log("broadcast transaction - 77: ", broadcastTransaction);
                     if(broadcastTransaction.result){
                         const _transactionId = broadcastTransaction.txid;
@@ -218,14 +219,6 @@ const BalanceTier = ({changeBalance}) => {
         }
     }
 
-    const shortenAddress = (address) => {
-        if(address == '' || address == null){
-            return "";
-        }
-        let newString = address.substr(0 , 5) + "..." + address.substr(-5, 5);
-        return newString;
-    }
-
     const initTronlink = async() => {
         let status = true;
         if(window.tronWeb){
@@ -239,8 +232,9 @@ const BalanceTier = ({changeBalance}) => {
         }
     }
 
-    const conpyLink = async(address) => {
+    const conpyLink = async(address, type) => {
         if(address != "") {
+            setCopyContent(type);
             await navigator.clipboard.writeText(address);
         }
     }
@@ -263,7 +257,7 @@ const BalanceTier = ({changeBalance}) => {
                                 <circle cx="2" cy="2" r="2" fill="#2A313C"/></svg>
                             </span> 
                             <div className="coprlink">{shortenAddress(balanceAddress)} 
-                                <a onClick={()=>conpyLink(balanceAddress)} role="button"><img src={IconCopyImage} /></a>
+                                <a onClick={()=>conpyLink(balanceAddress, 'balance')} role="button"><img src={copyContent=='balance'?CheckCircleImage:IconCopyImage} /></a>
                             </div>
                         </div>
                     </div>
@@ -339,7 +333,7 @@ const BalanceTier = ({changeBalance}) => {
                                                         <div className="col-sm-8">
                                                             <div className="key">
                                                                 <a href={transactionId==""?"#":transactionUrl+transactionId} target='_'>{shortenAddress(transactionId)}</a>
-                                                                <span><img src={IconCopy} onClick={()=>conpyLink(transactionId)} /></span>
+                                                                <span><img src={copyContent=='fund'?CheckCircleImage:IconCopyImage} onClick={()=>conpyLink(transactionId, 'fund')} /></span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -427,7 +421,7 @@ const BalanceTier = ({changeBalance}) => {
                                                         <div className="col-sm-4"><label>TXH:</label></div>
                                                         <div className="col-sm-8">
                                                             <a href={transactionId==""?"#":transactionUrl+transactionId} target='_'>{shortenAddress(transactionId)}</a>
-                                                            <span><img src={IconCopy} onClick={()=>conpyLink(transactionId)} /></span>
+                                                            <span><img src={copyContent=='withdraw'?CheckCircleImage:IconCopyImage} onClick={()=>conpyLink(transactionId, 'withdraw')} /></span>
                                                         </div>
                                                     </div>
                                                     <div className="btn-container">

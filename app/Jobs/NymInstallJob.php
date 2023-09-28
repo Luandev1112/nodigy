@@ -18,6 +18,8 @@ class NymInstallJob implements ShouldQueue
 
     protected $details;
 
+    public $timeout = 300; //300 seconds (5 minutes) for processing a single job
+
     /**
      * Create a new job instance.
      *
@@ -39,17 +41,20 @@ class NymInstallJob implements ShouldQueue
         Log::info($installCommand);
 
         try {
+            $output = [];
+            $returnCode = 0;
             exec($installCommand, $output, $returnCode);
 
             if ($returnCode === 0) {
-                Log::info("NymInstallJob: Node Installation Start Successfully.");
-                Log::info($output);
+                Log::info("NymInstallJob: Node Installation Succeeded.");
+                Log::info("Output: " . implode(PHP_EOL, $output));
             } else {
-                Log::info("NymInstallJob: Node Installation failed with error");
-                Log::error($output);
+                Log::error("NymInstallJob: Node Installation Failed with Error Code $returnCode");
+                Log::error("Output: " . implode(PHP_EOL, $output));
             }
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             Log::error("NymInstallJob: An exception occurred while executing the command: " . $e->getMessage());
+            Log::error("Exception Trace: " . $e->getTraceAsString());
         }
     }
 }

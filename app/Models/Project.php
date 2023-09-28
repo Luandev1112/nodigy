@@ -27,10 +27,6 @@ class Project extends Model
         'explorer',
         'image',
         'network_type',
-        'min_stake',
-        'min_price',
-        'stake_unit',
-        'onbording_fee',
         'project_status',
         'created_by',
         'updated_by'
@@ -50,11 +46,6 @@ class Project extends Model
     public function chain()
     {
         return $this->belongsTo(Chain::class, 'chain_id');
-    }
-
-    public function BlockChain()
-    {
-        return $this->belongsTo(BlockChain::class,'chain_id','id');
     }
 
     public function getImageUrl()

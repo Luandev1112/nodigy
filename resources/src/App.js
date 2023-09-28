@@ -55,7 +55,7 @@ const App = () => {
                     <Route path="/admin/emails-setting" element={<EmailSetting />}/>
                     <Route path="/admin/notifications-setting" element={<NotificationsSetting />}/>
                     <Route path="/admin/social-accounts" element={<SocialsSetting />}/>
-                    <Route path="/admin/wallet-connect" element={<WalletConnect />}/>
+                    <Route path="/admin/add-new-node" element={<WalletConnect />}/>
                     <Route path="/error" element={Error}/>
                 </Routes>
             )

@@ -428,6 +428,10 @@ class WizardSettingNymController extends BaseController
             {
                 return $this->sendError('Error', ['error'=>'WizardSettingNym not found, Please try again'],404);
             }
+            if($wizardSettingNym->full_step >0 && $wizardSettingNym->now_step >0 && $wizardSettingNym->full_step == $wizardSettingNym->now_step)
+            {
+                return $this->sendError('Error', ['error'=>'Node installation already completed'],404);
+            }
 
             try {
                 DB::beginTransaction();

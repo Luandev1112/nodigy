@@ -24,20 +24,37 @@ class WalletConnectionController extends BaseController
         if($projects->count() > 0){
             foreach($projects as $project) {
                 $network = $project->network()->first();
+                $chain_id = 0;
+                $chain_name = "";
+                $chain_rows = $project->chain();
+                if($chain_rows->count() > 0){
+                    $chain_id = $chain_rows->first()->id;
+                    $chain_name = $chain_rows->first()->chain_name;
+                }
                 $chain = $project->chain()->first();
+                $wizard_setting = null;
+                $wizard_setting_rows = $project->wizardSetting();
+                $setup_fee = 0;
+                $min_stake = 0;
+                if($wizard_setting_rows->count() > 0){
+                    $wizard_setting = $wizard_setting_rows->first();
+                    $setup_fee = $wizard_setting->setup_fee;
+                    $min_stake = $wizard_setting->min_stake;
+                }
                 $project_data = array(
                     'id' => $project->id,
                     'project_name' => $project->project_name,
                     'image' => $project->image,
                     'type' => $project->network_type,
-                    'min_stake' => $project->min_stake . " " . $project->stake_unit,
-                    'min_price' => "$ ".$project->min_price,
-                    'setup_fee' => $project->onbording_fee,
+                    'min_stake' => $min_stake,
+                    'setup_fee' => $setup_fee,
                     'description' => $project->description,
                     'network_id' => $network->id,
                     'network_name' => $network->network_name,
-                    'chain_id' => $chain->id,
-                    'chain_name' => $chain->chain_name,
+                    'token' => $project->project_token,
+                    'symbol' => $project->project_token==null?"":"$".$project->project_token,
+                    'chain_id' => $chain_id,
+                    'chain_name' => $chain_name,
                     'readmore' => true
                 );
                 array_push($result['projectlist'], $project_data);
@@ -61,20 +78,37 @@ class WalletConnectionController extends BaseController
         if($projects->count() > 0) {
             foreach($projects as $project) {
                 $network = $project->network()->first();
+                $chain_id = 0;
+                $chain_name = "";
+                $chain_rows = $project->chain();
+                if($chain_rows->count() > 0){
+                    $chain_id = $chain_rows->first()->id;
+                    $chain_name = $chain_rows->first()->chain_name;
+                }
                 $chain = $project->chain()->first();
+                $wizard_setting = null;
+                $wizard_setting_rows = $project->wizardSetting();
+                $setup_fee = 0;
+                $min_stake = 0;
+                if($wizard_setting_rows->count() > 0){
+                    $wizard_setting = $wizard_setting_rows->first();
+                    $setup_fee = $wizard_setting->setup_fee;
+                    $min_stake = $wizard_setting->min_stake;
+                }
                 $project_data = array(
                     'id' => $project->id,
                     'project_name' => $project->project_name,
                     'image' => $project->image,
                     'type' => $project->network_type,
-                    'min_stake' => $project->min_stake . " " . $project->stake_unit,
-                    'min_price' => "$ ".$project->min_price,
-                    'setup_fee' => $project->onbording_fee,
+                    'min_stake' => $min_stake,
+                    'setup_fee' => $setup_fee,
                     'description' => $project->description,
                     'network_id' => $network->id,
                     'network_name' => $network->network_name,
-                    'chain_id' => $chain->id,
-                    'chain_name' => $chain->chain_name,
+                    'token' => $project->project_token,
+                    'symbol' => $project->project_token==null?"":"$".$project->project_token,
+                    'chain_id' => $chain_id,
+                    'chain_name' => $chain_name,
                     'readmore' => true
                 );
                 array_push($result['projectlist'], $project_data);
@@ -379,5 +413,23 @@ class WalletConnectionController extends BaseController
         }
         return response()->json($wallet, 200);
 
+    }
+
+    public function getCryptoRates(Request $request)
+    {
+        $tokens_string = $request->tokens;
+        $coinmarketcap_key = '0752b0a1-5bb9-4dd5-b06a-57356b3d04c2';
+        $url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol='.$tokens_string.'&convert=USD&CMC_PRO_API_KEY='.$coinmarketcap_key;
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, POST');
+        header("Access-Control-Allow-Headers: X-Requested-With");
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        $data = curl_exec($ch);
+        curl_close($ch);
+        $json_data = json_decode($data);
+        return response()->json($json_data, 200);
+      
     }
 }

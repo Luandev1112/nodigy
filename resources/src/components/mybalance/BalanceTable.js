@@ -4,17 +4,10 @@ import LogoIcon1 from "../../assets/img/logo-icon 1.png";
 import IconSorting from "../../assets/img/icon-sorting-table.svg";
 import IconArrowImage from "../../assets/img/icon-arrow-right.png";
 import { Accordion, Card, Button, Dropdown } from 'react-bootstrap';
+import { shortenAddress } from "../../utils/script";
 const BalanceTable = ({data}) => {
     const [tableData, setTableData] = useState([]);
     const transactionUrl = "https://nile.tronscan.io/#/transaction/";
-
-    const shortenAddress = (address) => {
-        if(address==null || address == ''){
-            return "";
-        }
-        let newString = address.substr(0 , 5) + "..." + address.substr(-5, 5);
-        return newString;
-    }
 
     useEffect(()=>{
        setTableData(data);
@@ -22,7 +15,8 @@ const BalanceTable = ({data}) => {
     return (
         <React.Fragment>
             <div className="nearestpayment">
-                <p><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.9105 10.72H14.8205V3.51999C14.8205 1.83999 13.9105 1.49999 12.8005 2.75999L12.0005 3.66999L5.2305 11.37C4.3005 12.42 4.6905 13.28 6.0905 13.28H9.1805V20.48C9.1805 22.16 10.0905 22.5 11.2005 21.24L12.0005 20.33L18.7705 12.63C19.7005 11.58 19.3105 10.72 17.9105 10.72Z" fill="#EAB308"/></svg> <span>Nearest Paymenet: 346.85 $USDT at <strong>23.01.2023</strong></span></p>
+                <p><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.9105 10.72H14.8205V3.51999C14.8205 1.83999 13.9105 1.49999 12.8005 2.75999L12.0005 3.66999L5.2305 11.37C4.3005 12.42 4.6905 13.28 6.0905 13.28H9.1805V20.48C9.1805 22.16 10.0905 22.5 11.2005 21.24L12.0005 20.33L18.7705 12.63C19.7005 11.58 19.3105 10.72 17.9105 10.72Z" fill="#EAB308"/></svg>
+                <span>Nearest Paymenet: 346.85 $USDT at <strong>23.01.2023</strong></span></p>
             </div>
             <div className="dashboard-tier2 mybalance-tier2">
                 <div className="title">
@@ -128,7 +122,7 @@ const BalanceTable = ({data}) => {
                     <div className="paginations">
                         <nav aria-label="Page navigation example">
                             <ul className="pagination">
-                                <li className="page-item"><a className="page-link" href="#">Previous</a></li>
+                                <li className="page-item"><a className="page-link" href="#">Prev</a></li>
                                 <li className="page-item"><a className="page-link" href="#">1</a></li>
                                 <li className="page-item"><a className="page-link" href="#">2</a></li>
                                 <li className="page-item"><a className="page-link" href="#">3</a></li>

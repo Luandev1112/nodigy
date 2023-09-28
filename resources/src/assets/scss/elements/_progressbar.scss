@@ -9,7 +9,7 @@
 .progress {
     height: 6px;
     overflow: hidden;
-    background-color: var(--color-blackest);
+    background-color: var(--color-light);
     border-radius: 10px;
     .progress-bar {
         border-radius: 10px;
@@ -21,20 +21,14 @@
 }
 
 .progress-info {
-    display: flex;
+    display: flow-root;
     justify-content: space-between;
-    margin-bottom: 18px;
-    .title {
-        font-size: 18px;
-        font-weight: 400;
-        margin-bottom: 0;
-        color: var(--color-body);
-        letter-spacing: 0.5px;
-    }
     span {
         &.progress-number {
             font-size: 14px;
-            color: var(--color-body);
+            color: var(--color-white);
+            float: right;
+            font-family: var(--secondary-font);
         }
     }
 }

@@ -1,7 +1,7 @@
 /*-- Variables --*/
 :root {
     //Themes colors
-    --color-primary: #5129f1;
+    --color-primary: #5129F1;
     --color-primary-rgba: rgb(81, 41, 241);
     --color-primary-alt: #5129f1;
     --color-primary-light: #059DFF;
@@ -37,22 +37,26 @@
 
 
     // Gery Colors 
-    --color-gray: #65676B;
+    --color-gray: #A0AEC0;
     // --color-midgray: #9F9F9F;
     --color-midgray: #878787;
-    --color-light: #E4E6EA;
+    --color-light: #E8EDFF;
     --color-lighter: #CED0D4;
     --color-lightest: #F0F2F5;
+    --color-yellow: #FACC15;
 
     --color-white: #ffffff;
-    
+    --color-white-bg: #ffffff0f;
+    --color-box-shadow: #ffffff0d;
+
 
 
     // Notify Colors 
-    --color-success: #3EB75E;
-    --color-danger: #FF0003;
+    --color-success: #00FFDF;
+    --color-danger: #c41c56;
     --color-warning: #FF8F3C;
     --color-info: #1BA2DB;
+    --color-active: #22c55e;
 
 
     //Social icon colors
@@ -104,8 +108,8 @@
     --transition-transform: transform .65s cubic-bezier(.23,1,.32,1);
 
     //Font Family
-    --font-primary: 'Inter', sans-serif;
-    --secondary-font: 'Inter', sans-serif;
+    --font-primary: "GilroyLight", sans-serif;
+    --font-secondary: "GilroyExtraBold", sans-serif;
     --font-awesome: 'Font Awesome 5 Pro';
 
 

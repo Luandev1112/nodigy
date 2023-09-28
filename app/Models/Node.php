@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Model;
 
 class Node extends Model
@@ -58,5 +59,15 @@ class Node extends Model
     public function Server()
     {
         return $this->belongsTo(Server::class,'server_id','id');
+    }
+
+    public function getImageUrl()
+    {
+        if($this->node_logo){
+            if(Storage::disk('local')->exists("public/node_logo/" . $this->node_logo)) {
+                return asset('storage/node_logo')."/".$this->node_logo;
+            }
+        }
+        return "";
     }
 }

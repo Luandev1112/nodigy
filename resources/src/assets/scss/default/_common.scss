@@ -170,6 +170,18 @@
     @extend %color-white;
 }
 
+.color-yellow {
+    color: var(--color-yellow) !important;
+}
+
+.color-active {
+    color: var(--color-active) !important;
+}
+
+.color-success {
+    color: var(--color-success) !important;
+}
+
 
 
 
@@ -342,6 +354,21 @@
     @extend %w-900;
 }
 
+.font-size-12 {
+    font-size: var(--font-size-b4);
+}
+
+.font-size-14 {
+    font-size: var(--font-size-b3);
+}
+
+.font-size-16 {
+    font-size: var(--font-size-b2);
+}
+
+.font-size-18 {
+    font-size: var(--font-size-b1);
+}
 
 
 /* Shadows */
@@ -428,11 +455,11 @@
 
 body {
 	font-family: 'GilroyLight', sans-serif;
-	font-weight: 600;
+	font-weight: 500;
 	font-size: 16px;
 	color: #000;
 	line-height: 20px;
-	background: #fff;
+    background: #1a202c;
 }
 
 img {
@@ -470,17 +497,6 @@ ul li {
 	margin: 0;
 	padding: 0;
 	list-style: none;
-}
-
-label {
-	color: #333;
-	font-weight: 400;
-	display: block;
-	font-size: 13px;
-}
-
-lable span {
-	color: #333;
 }
 
 .btn-primary {
@@ -658,11 +674,6 @@ button.close {
 .form-group {
 	margin-bottom: 15px;
 }
-
-body {
-	background: #1a202c;
-}
-
 
 /*-------------- Custom css end ------------*/
 

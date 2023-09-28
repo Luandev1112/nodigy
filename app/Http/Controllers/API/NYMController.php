@@ -23,6 +23,7 @@ class NYMController extends BaseController
         $user = $request->user;
         $cond['user_id'] = $user->id;
         $cond['node_status'] = 0;
+        $cond['project_id'] = 2;
         $nodes = Node::where($cond)->orderBy('id', 'DESC')->get();
         if($nodes->count() > 0){
             $node = $nodes[0];
@@ -212,4 +213,57 @@ class NYMController extends BaseController
         return response()->json($node, 200);
     }
 
+    public function getNodeInfo(Request $request)
+    {
+        $result = array();
+        $user = $request->user;
+        if($user)
+        {
+            $node_id = $request->node_id;
+            if($node_id != null && $node_id > 0) {
+                 $node = Node::findOrFail($node_id);
+                if($node) {
+                    $result['node'] = $node;
+                    $result['status'] = 1;
+                    return response()->json($result, 200);
+                }else{
+                    $result['status'] = 0;
+                    $result['error'] = "Node does not exist";
+                    return response()->json($result, 204);
+                }
+            }
+        }else{
+            $result['status'] = 0;
+            $result['error'] = "User login failed";
+            return response()->json($result, 204);
+        }
+    }
+
+    public function updateNodeName(Request $request)
+    {
+        $result = array();
+        $user = $request->user;
+        if($user)
+        {
+            $node_id = $request->node_id;
+            if($node_id != null && $node_id > 0) {
+                 $node = Node::findOrFail($node_id);
+                if($node) {
+                    $node->node_name = $request->node_name;
+                    $node->save();
+                    $result['node'] = $node;
+                    $result['status'] = 1;
+                    return response()->json($result, 200);
+                }else{
+                    $result['status'] = 0;
+                    $result['error'] = "Node does not exist";
+                    return response()->json($result, 204);
+                }
+            }
+        }else{
+            $result['status'] = 0;
+            $result['error'] = "User login failed";
+            return response()->json($result, 204);
+        }
+    }
 }

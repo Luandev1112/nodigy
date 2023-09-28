@@ -34,6 +34,11 @@ class WizardSetting extends Model
         3 => 'Max performance',
     ];
 
+    public function chain()
+    {
+        return $this->belongsTo(Chain::class, 'chain_id');
+    }
+
     public function WizardSettingStep()
     {
         return $this->hasMany(WizardSettingStep::class,'wizard_setting_id');

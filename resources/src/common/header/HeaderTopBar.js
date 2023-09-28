@@ -10,6 +10,7 @@ import IconSettingsImage from "../../assets/img/icon-setings.png";
 import IconLogoutImage from "../../assets/img/icon-setings.png";
 import ArrowUpImage from "../../assets/img/arrow-narrow-up.png";
 import FortaDropdownImage from '../../assets/img/forte-dropdown-img.png';
+import NYMNodeImage from '../../assets/img/nym.png';
 import Http from "../../utils/Http";
 
 const HeaderTopBar = ({menu, myBalance}) => {
@@ -64,7 +65,7 @@ const HeaderTopBar = ({menu, myBalance}) => {
               <div className="node-header-dropdown">
                 <Dropdown className="">
                   <Dropdown.Toggle variant="default">
-                    <img src={FortaDropdownImage} /> <span>Forta<span>12 Node</span></span>
+                    <img src={NYMNodeImage} /> <span>NYM Node<span>12 Node</span></span>
                   </Dropdown.Toggle>
 
                   <Dropdown.Menu>
@@ -99,7 +100,7 @@ const HeaderTopBar = ({menu, myBalance}) => {
                 <Dropdown className="profiledropdown">
                   <Dropdown.Toggle variant="default" id="">
                     <div className="img"><img src={ProfileImage} /></div>
-                    <span>{user?.name}</span>
+                    <span>{user?.email}</span>
                   </Dropdown.Toggle>
 
                   <Dropdown.Menu>

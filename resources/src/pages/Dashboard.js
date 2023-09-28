@@ -6,7 +6,6 @@ import DashboardTable from '../components/dashboard/DashboardTable';
 import { Accordion, Card, Button, Dropdown } from 'react-bootstrap';
 import tableData from '../data/dashboard/DashboardTable.json';
 const Dashboard = ({setPath}) => {
-    
     useEffect(()=>{
         setPath('dashboard');
     }, []);

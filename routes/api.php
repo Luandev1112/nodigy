@@ -69,6 +69,11 @@ Route::group(['middleware' => ['verifyBearerToken']], function () {
         Route::post('/log-installation-store', 'API\WizardSettingNymController@logInstallationStore');
         Route::post('/log-installation-view', 'API\WizardSettingNymController@logInstallationView');
     });
+
+    Route::group(['prefix' => 'node'], function () {
+        Route::post('/update', 'API\NodeController@update');
+    });
+
     Route::group(['prefix' => 'hetzner-api'], function () {
         Route::get('/project-servers/{name}', 'API\HetznerApiController@getProjectServers');
     });
@@ -90,4 +95,6 @@ Route::group(['middleware' => ['verifyBearerToken']], function () {
     Route::post('/getNodeWallet', 'API\NYMController@getNodeWallet');
     Route::post('/save-server-id', 'API\NYMController@saveServerId');
     Route::post('/set-node-status', 'API\NYMController@setNodeStatus');
+    Route::post('/node-info',  'API\NYMController@getNodeInfo');
+    Route::post('/update-node-name',  'API\NYMController@updateNodeName');    
 });

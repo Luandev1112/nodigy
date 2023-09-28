@@ -32,7 +32,6 @@ const MyBalance = () => {
                 <HeaderTopBar menu="mybalance" myBalance={myBalance} />
                 <BalanceTier changeBalance={changeBalance} />
                 <BalanceTable data={transactionData} />
-
             </div>
         </div>
     )

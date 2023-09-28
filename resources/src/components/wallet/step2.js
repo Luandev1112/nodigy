@@ -12,8 +12,32 @@ const Step2 = ({chooseProject, project}) => {
         setNetworkType(netType);
         const formData = new FormData();
         formData.append('network_type', netType);
-        const result = await Http.post('/admin/api/filterNetworkProjects', formData);
-        setProjects(result.data.projectlist);
+        const _result = await Http.post('/admin/api/filterNetworkProjects', formData);
+        let _projectlist = _result.data.projectlist;
+        let tokenArray = [];
+        _projectlist.map((_project, i) => {
+            if(_project.token && _project.token != ''){
+                tokenArray.push(_project.token);
+            }
+        });
+        if(tokenArray.length > 0) {
+            const tokenStr = tokenArray.join(',');
+            const formData = new FormData();
+            formData.append('tokens', tokenStr);
+            const rateresponse = await Http.post('/admin/api/getCryptoRates', formData);
+            if(rateresponse.data.status.error_code == 0) {
+                const rateList = rateresponse.data.data;
+                _projectlist.map((_project, i) => {
+                    if(_project.token && _project.token != ''){
+                        const tokenData = rateList[_project.token];
+                        const _rate = tokenData.quote.USD.price;
+                        const _min_price =  Number((_project.min_stake * _rate).toFixed(2));
+                        _project.min_price = _min_price;
+                    }
+                });
+            }
+        }
+        setProjects(_projectlist);
     };
 
     const selectProject = (idx) => {
@@ -24,8 +48,32 @@ const Step2 = ({chooseProject, project}) => {
     }
 
     const getProjects = async() => {
-        const _projects = await Http.get('admin/api/getAllProjects');
-        setProjects(_projects.data.projectlist);
+        const _result = await Http.get('admin/api/getAllProjects');
+        let _projectlist = _result.data.projectlist;
+        let tokenArray = [];
+        _projectlist.map((_project, i) => {
+            if(_project.token && _project.token != ''){
+                tokenArray.push(_project.token);
+            }
+        });
+        if(tokenArray.length > 0) {
+            const tokenStr = tokenArray.join(',');
+            const formData = new FormData();
+            formData.append('tokens', tokenStr);
+            const rateresponse = await Http.post('/admin/api/getCryptoRates', formData);
+            if(rateresponse.data.status.error_code == 0) {
+                const rateList = rateresponse.data.data;
+                _projectlist.map((_project, i) => {
+                    if(_project.token && _project.token != ''){
+                        const tokenData = rateList[_project.token];
+                        const _rate = tokenData.quote.USD.price;
+                        const _min_price =  Number((_project.min_stake * _rate).toFixed(2));
+                        _project.min_price = _min_price;
+                    }
+                });
+            }
+        }
+        setProjects(_projectlist);
     }
 
     const selectReadMore = (idx) => {
@@ -55,9 +103,9 @@ const Step2 = ({chooseProject, project}) => {
                     <p>You might see some projects double each other at this stage. Pay attention to their status — it could be mainnet or testnet, and they'll have different conditions for validators.</p>
                 </div>
                 <div className="step2_filter">
-                    <a onClick={()=>filterByNet('all')} className={networkType=='all'?"active":""}>All Projects</a>
-                    <a onClick={()=>filterByNet('test')} className={networkType=='test'?"active":""}>Testnet</a>
-                    <a onClick={()=>filterByNet('main')} className={networkType=='main'?"active":""}>Mainnet</a>
+                    <a onClick={()=>filterByNet('all')} className={networkType=='all'?"active":""} role='button'>All Projects</a>
+                    <a onClick={()=>filterByNet('test')} className={networkType=='test'?"active":""} role='button'>Testnet</a>
+                    <a onClick={()=>filterByNet('main')} className={networkType=='main'?"active":""} role='button'>Mainnet</a>
                 </div>
                 <div className="borerbox">
                     <div className="row">
@@ -69,8 +117,8 @@ const Step2 = ({chooseProject, project}) => {
                                             <div className="box-head">
                                                 <div className="img"><img src={mediaUrl + 'project_image/'+project.image} /></div>
                                                 <div className="name">{project.project_name}</div>
-                                                {project.type == 'main' && <div className="tag"><span className="mainnet">Mainnet</span></div>}
-                                                {project.type == 'test' && <div className="tag"><span className="testnet">Testnet</span></div>}
+                                                {project.type == 1 && <div className="tag"><span className="mainnet">Mainnet</span></div>}
+                                                {project.type == 0 && <div className="tag"><span className="testnet">Testnet</span></div>}
                                             </div>
                                             <div className="box-content">
                                                 <p>{ project.readmore==true ? project.description.slice(0, 100)+"..." : project.description }<a className="read-or-hide" onClick={() => selectReadMore(i)}> { project.readmore ? "Learn more..." : "Show less"}</a></p>
@@ -79,13 +127,13 @@ const Step2 = ({chooseProject, project}) => {
                                                         <tbody>
                                                             <tr>
                                                                 <td>Min stake:</td>
-                                                                <td className="text-right">{project.min_stake}</td>
+                                                                <td className="text-end">{project.min_stake+" "+project.symbol}</td>
                                                             </tr>
                                                             <tr>
-                                                                <td colSpan="2" className="text-right">~ {project.min_price}</td>
+                                                                <td colSpan="2" className="text-end">~ ${project.min_price}</td>
                                                             </tr>
                                                             <tr>
-                                                                <td colSpan="2" className="text-right"><span className="setupfee">Setup fee  ~ {project.setup_fee}</span></td>
+                                                                <td colSpan="2" className="text-end"><span className="setupfee">Setup fee  ~ ${project.setup_fee}</span></td>
                                                             </tr>
                                                         </tbody>
                                                     </table>

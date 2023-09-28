@@ -7,9 +7,9 @@ if(!request()->is('/')){
 <footer>
 	<div class="container">
 		<div class="row">
-			<div class="col-md-3">	
+			<div class="col-md-3">
 				<div class="footer-logo"><img src="{{asset('/')}}img/footer-logo.png" /></div>
-			</div>	
+			</div>
 			<div class="col-md-9">
 				<div class="row">
 					<div class="col-sm-3 col-xs-6">
@@ -44,7 +44,7 @@ if(!request()->is('/')){
 						              <a href="#">Delegate</a>
 						            @else
 						              <a href="{{route('login')}}">Delegate</a>
-						            @endif									
+						            @endif
 								</li>
 							</ul>
 						</div>
@@ -54,15 +54,16 @@ if(!request()->is('/')){
 							<p>Follow us</p>
 							<ul class="hero-userful-links">
 								<!-- <li><a href="#" target="_blank"><img src="{{asset('/')}}img/icon-discord.svg" /> Discord</a></li> -->
-								<li><a href="https://medium.com/@nodigy" target="_blank"><img src="{{asset('/')}}img/icon-medium.svg" /> Medium</a></li>
 								<li><a href="https://twitter.com/NodigyProject" target="_blank"><img src="{{asset('/')}}img/icon-twitter.svg" /> Twitter</a></li>
+								<li><a href="https://medium.com/@nodigy" target="_blank"><img src="{{asset('/')}}img/icon-medium.svg" /> Medium</a></li>
+								<li><a href="https://mirror.xyz/0x0725754aEc5aD525bf08d1e30b47B3209D2967Ed" target="_blank"><img src="{{asset('/')}}img/mirror.png" /> Mirror</a></li>
 								<li><a href="https://t.me/nodigy_news" target="_blank"><img src="{{asset('/')}}img/icon-telegram.svg" /> Telegram</a></li>
 								<!-- <li><a href="https://www.facebook.com/profile.php?id=100087976975660" target="_blank"><img src="{{asset('/')}}img/icon-facebook.png" height="22" /> Facebook</a></li> -->
 							</ul>
 						</div>
 					</div>
 				</div>
-			</div>	
+			</div>
 		</div>
 		<div class="subfooter">
 			<div class="container">
@@ -75,7 +76,7 @@ if(!request()->is('/')){
 @if(Session::has('status'))
     <script type="text/javascript">
         showToastMessage("success","{{ Session::get('status') }}");
-    </script>    
+    </script>
     @php Session::forget('status') @endphp
 @endif
 @if(Session::has('success'))

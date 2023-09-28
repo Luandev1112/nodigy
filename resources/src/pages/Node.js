@@ -2,22 +2,46 @@ import React, {useState, useEffect} from 'react'
 import Sidebar from '../common/header/Sidebar';
 import HeaderTopBar from '../common/header/HeaderTopBar';
 import { Accordion, Card, Button, Dropdown } from 'react-bootstrap';
-import IconNodeArrowChartImage from '../assets/img/icon-node-arrow-chart.png';
-import IconPlusWhiteImage from '../assets/img/icon-plus-white.svg';
+import { Link } from 'react-router-dom';
 import IconFilterWhiteImage from '../assets/img/icon-filter-white.svg';
-import NodeImage from '../assets/img/node1-img.png';
 import TierIcon1Image from '../assets/img/dashboard-tier1-icon1.png';
 import TierIcon2Image from '../assets/img/dashboard-tier1-icon2.png';
+import IconEmojiActive from '../assets/img/icon-emoji-active.svg';
+import IconEmojiWarning from '../assets/img/icon-emoji-warning.svg';
+import IconEmojiDanger from '../assets/img/icon-emoji-danger.svg';
 import TierIcon3Image from '../assets/img/dashboard-tier1-icon3.png';
 import NodeStatsImage from '../assets/img/node-stats-img.png'; 
+import IconExportImage from '../assets/img/icon-export.svg';
 import WalletNodeImage from '../assets/img/wallet-node-img1.png';
-import IconCopyImage from '../assets/img/icon-copy.png';
-
-import IconEditGrayImage from '../assets/img/icon-edit-gray.png';
-import IconDeleteGrayImage from '../assets/img/icon-delete-gray.png';
+import IconCopyImage from "../assets/img/icon-copy.png";
+import CheckCircleImage from "../assets/img/icon-check-bullet.svg";
+import IconEditWhiteImage from '../assets/img/icon-edit-white.svg';
+import IconDeleteWhiteImage from '../assets/img/icon-delete-white.svg';
 import nodeList from '../data/delegation/nodeList.json';
+import {shortenAddressString, shortenAddress} from '../utils/script';
+
+import NodeStaked from '../components/node/NodeStaked';
+import NodeReward from '../components/node/NodeReward';
+import NodeStatus from '../components/node/NodeStatus';
+import NodeFinance from '../components/node/NodeFinance';
+import NodeInfo from '../components/node/NodeInfo';
+import NodeTechnicalinfo from '../components/node/NodeTechnicalinfo';
+import NodeAbout from '../components/node/NodeAbout';
+
+
 const Node = () => {
     const [selectedId, setSelectedId] = useState(0);
+    const [walletAddress, setWalletAddress] = useState('HbYdET93DG8yj4Ux3Rp3CP2aCKKFwbhdAuNxoy1T8T7K');
+    const [copyContent, setCopyContent] = useState('');
+    const [hourProgress, setHourProgress] = useState({ percantage: 100, progressColor: "#5129F1"});
+    const [dayProgress, setDayProgress] = useState({ percantage: 80, progressColor: "#FACC15"});
+
+    const conpyLink = async(address, type) => {
+        if(address != "") {
+            setCopyContent(type);
+            await navigator.clipboard.writeText(address);
+        }
+    }
 
     const selectNode = (nodeId) => {
         setSelectedId(nodeId);
@@ -32,16 +56,22 @@ const Node = () => {
                     <div className="left">
                         <div className="node-left-tier1">
                             <div className="bluebox">
-                                <p><span>Total balance</span> <span><img src={IconNodeArrowChartImage} />2.05%</span> <span>This Month</span> </p>
-                                <div className="text">10 00 000</div>
+                                <h5>Your wizard in validation world</h5>
+                                <div className="btn-container"><Link to="/admin/add-new-node">Add New Node <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.33337 4H10.6667" stroke="#5129F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> <path d="M8 6.66667L10.6667 4" stroke="#5129F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M8 1.33337L10.6667 4.00004" stroke="#5129F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></Link></div>
+                            </div>
+                        </div>
+                        <div className='node-check-block'>
+                            <div className="form-check">
+                                <input className="form-check-input" type="checkbox" name="step2" id="bond-step-2" />
+                                <label className="form-check-label" htmlFor="bond-step-2">
+                                    Hide deleted nodes
+                                </label>
                             </div>
                         </div>
                         <div className="node-left-tier2">
-                            <a href="#" className="btnaddnew"><img src={IconPlusWhiteImage} /> Add New</a>
-
                             <Dropdown className="">
                               <Dropdown.Toggle variant="default" className="btnfilter">
-                                <img src={IconFilterWhiteImage} /> Filter
+                                <img src={IconFilterWhiteImage} /> Filters
                               </Dropdown.Toggle>
 
                               <Dropdown.Menu>
@@ -90,181 +120,56 @@ const Node = () => {
                         <div className="title">
                             <h1>
                                 <span>Name or label node1</span>
-                                <p><span>05 Sep 2022</span><span>kv.d***s@gmail.com</span><span>Germany</span></p>
+                                <p>
+                                    <span>05 Sep 2022</span>
+                                    <span className="copy-link">
+                                        <span>{shortenAddress(walletAddress)}</span>
+                                        <a role="button" onClick={()=>conpyLink(walletAddress, 'wallet')}>
+                                            <img src={copyContent=='wallet'?CheckCircleImage:IconCopyImage} />
+                                        </a>
+                                    </span>
+                                </p>
                             </h1> 
                             <div className="rightdiv">
-                                <a href="#"><img src={IconEditGrayImage} /></a>
-                                <a href="#"><img src={IconDeleteGrayImage} /></a>
+                                <a role='button' className='btn-edit'><img src={IconEditWhiteImage} /> Edit</a>
+                                <a role='button' className='btn-delete'><img src={IconDeleteWhiteImage} /> Delete </a>
                             </div>
                         </div>
-                        <div className="dashboard-tier1 node-content-tier1">
+                        <div className="node-content-tier1">
                             <div className="row">
                                 <div className="col-sm-12">
                                     <div className="row">
                                         <div className="col-sm-4">
-                                            <div className="items item2">
-                                                <div className="text1">Unclaimed rewards</div>
-                                                <div className="text2">12.54 $ARB</div>
-                                                <div className="graphimg">
-                                                    <a href="#" className="btn btn-primary">Claim now</a>
-                                                </div>
-                                                <div className="icons"><img src={TierIcon2Image} /></div>
-                                            </div>
+                                            <NodeStaked />
                                         </div>
                                         <div className="col-sm-4">
-                                            <div className="items item2">
-                                                <div className="text1">Total rewards earned</div>
-                                                <div className="text2">698.44 $ARB</div>
-                                                <div className="graphimg"><img src={NodeStatsImage} /></div>
-                                                <div className="icons"><img src={TierIcon1Image} /></div>
-                                            </div>
+                                            <NodeReward />
                                         </div>
                                         <div className="col-sm-4">
-                                            <div className="items item2">
-                                                <div className="text1">Estimated APY</div>
-                                                <div className="text2">~21%</div>
-                                                <div className="graphimg"><img src={NodeStatsImage} /></div>
-                                                <div className="icons"><img src={TierIcon3Image} /></div>
-                                            </div>
+                                            <NodeStatus />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
                         <div className="node-content-tier2">
                             <div className="row">
                                 <div className="col-sm-6">
-                                    <div className="node-block node-info-block">
-                                        <div className="title"><span>Staking</span></div>
-                                        <div className="node-block-content">
-                                            <div className="fixheightdiv">
-                                                <div className="row">
-                                                    <label className="col-sm-6">Total staked</label>
-                                                    <span className="col-sm-6 text-end">~23.45 $ARB</span>
-                                                </div>
-                                                <div className="row">
-                                                    <label className="col-sm-6">My staking</label>
-                                                    <span className="col-sm-6 text-end">~23.45 $ARB</span>
-                                                </div>
-                                                <div className="row">
-                                                    <label className="col-sm-6">Self%:</label>
-                                                    <span className="col-sm-6 text-end">97%</span>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className="col-sm-6"><a href="#" className="btn btn-default">Unstake</a></div>
-                                                <div className="col-sm-6"><a href="#" className="btn btn-primary">Stake More</a></div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <NodeFinance />
                                 </div>
                                 <div className="col-sm-6">
-                                    <div className="node-block node-info-block">
-                                        <div className="title">
-                                            <span>Delegation</span>
-                                            
-                                        </div>
-                                        <div className="node-block-content">
-                                            <div className="fixheightdiv">
-                                                <div className="row">
-                                                    <label className="col-sm-7">Total Delegated:</label>
-                                                    <span className="col-sm-5 text-end">~23.45 $ARB</span>
-                                                </div>
-                                                <div className="row">
-                                                    <label className="col-sm-7">Delegators:</label>
-                                                    <span className="col-sm-5 text-end">~23.45 $ARB</span>
-                                                </div>
-                                                <div className="row">
-                                                    <label className="col-sm-7">Comission:</label>
-                                                    <span className="col-sm-5 text-end">97%</span>
-                                                </div>
-                                                <div className="row">
-                                                    <label className="col-sm-7">Total rewards earned from delegators:</label>
-                                                    <span className="col-sm-5 text-end">97%</span>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className="col-sm-6"><a href="#" className="btn btn-default">Unstake</a></div>
-                                                <div className="col-sm-6"><a href="#" className="btn btn-primary">Stake More</a></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="node-content-tier3">
-                            <div className="row">
-                                <div className="col-sm-12">
-                                    <div className="node-block node-info-block">
-                                        <div className="title"><span>Wallet</span></div>
-                                        <div className="node-block-content">
-                                            <div className="items">
-                                                <div className="img"><img src={WalletNodeImage} /></div>
-                                                <div className="name">NEAR</div>
-                                                <div className="key">0x075a12vb3yh4o5k6qa78902BE53</div>
-                                            </div>
-                                            <div className="items">
-                                                <div className="img"><img src={WalletNodeImage} /></div>
-                                                <div className="name">ETH</div>
-                                                <div className="key">0x075a12vb3yh4o5k6qa78902BE53</div>
-                                            </div>
-                                            <div className="items">
-                                                <div className="img"><img src={WalletNodeImage} /></div>
-                                                <div className="name">NYX Mainnet</div>
-                                                <div className="key">0x075a12vb3yh4o5k6qa78902BE53</div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <NodeInfo />
                                 </div>
                             </div>
                         </div>
                         <div className="node-content-tier4">
                             <div className="row">
                                 <div className="col-sm-6">
-                                    <div className="node-block node-info-block">
-                                        <div className="title">
-                                            <span>Info</span>
-                                        </div>
-                                        <div className="node-block-content">
-                                            <div className="row">
-                                                <label className="col-sm-3">Contract:</label>
-                                                <span className="col-sm-9 text-end"><span className="copylinke">5uzgAJ5uCN...Z2hCff4h <a href="#"><img src={IconCopyImage} /></a></span></span>
-                                            </div>
-                                            <div className="row">
-                                                <label className="col-sm-3">Website:</label>
-                                                <span className="col-sm-9 text-end"><span className="spanbg">medium.com</span> <span className="spanbg">paxos.com</span></span>
-                                            </div>
-                                            <div className="row">
-                                                <label className="col-sm-3">Explorers:</label>
-                                                <span className="col-sm-9 text-end"><span className="spanbg">Etherscan</span></span>
-                                            </div>
-                                            <div className="row">
-                                                <label className="col-sm-3">Wallets:</label>
-                                                <span className="col-sm-9 text-end"><span className="spanbg">Ledger</span></span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <NodeTechnicalinfo />
                                 </div>
                                 <div className="col-sm-6">
-                                    <div className="node-block node-community-block">
-                                        <div className="title">
-                                            <span>Community</span>
-                                        </div>
-                                        <div className="node-block-content">
-                                            <div className="row">
-                                                <label className="col-sm-3">Community:</label>
-                                                <span className="col-sm-9 text-end"><span className="spanbg">Twitter</span><span className="spanbg">Facebook</span></span>
-                                            </div>
-                                            <div className="row">
-                                                <label className="col-sm-3">API Id:</label>
-                                                <span className="col-sm-9 text-end"><span className="copylinke">binance-usd <a href="#"><img src={IconCopyImage} /></a></span></span>
-                                            </div>
-                                            <div className="row">
-                                                <label className="col-sm-3">Tags:</label>
-                                                <span className="col-sm-9 text-end"><span className="copylinke">binance-usd <a href="#"><img src={IconCopyImage} /></a></span></span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <NodeAbout />
                                 </div>
                             </div>
                         </div>

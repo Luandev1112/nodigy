@@ -1,7 +1,7 @@
 import React from 'react';
 
-function Skill ({progress, isVisible}) {
-    const { title, percantage, progressColor } = progress;
+function Progress ({progress, isVisible}) {
+    const { percantage, progressColor } = progress;
     const progressQuery = () => {
         return (
             <div className="progress-bar data-background"
@@ -19,10 +19,10 @@ function Skill ({progress, isVisible}) {
     return (
         <div className="progress-item">
             <div className="progress-info">
-                <span className="progress-number">{percantage}%</span>
+                <span className="progress-number" style={{color: progressColor}}>{percantage}%</span>
             </div>
             <div className="progress">{progressQuery()}</div>
         </div>
     );
 }
-export default Skill;
+export default Progress;

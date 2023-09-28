@@ -35,6 +35,28 @@ const sendTrc20 = async(amount, walletAddress) => {
     var broadcastTransaction = await tronWeb.trx.sendRawTransaction(signedTransaction);
     return broadcastTransaction;
 }
+
+const shortenAddressString = (address, length) => {
+    if(address == null) {
+        return address;
+    }
+    let newString = '';
+    if(address.length > length){
+        newString = address.substr(0 , length) + "...";   
+    }else{
+        newString = address;
+    }
+    return newString;
+}
+
+const shortenAddress = (address) => {
+    let newString = '';
+    if(address.length <= 10){
+        newString = address;
+    }else{
+        newString = address.substr(0 , 5) + "..." + address.substr(-5, 5);
+    }
+    return newString;
+}
   
-  
-export {sendTrc20}
+export {sendTrc20, shortenAddressString, shortenAddress}
