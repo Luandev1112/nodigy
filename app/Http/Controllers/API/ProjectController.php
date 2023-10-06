@@ -88,4 +88,47 @@ class ProjectController extends BaseController
             return $this->sendError('detail not found.');
         }
     }
+
+    public function getNodeProjects(Request $request)
+    {
+        $cond = array();
+        $cond['project_status'] = 1;
+        $projects = Project::where($cond)->get();
+        $project_array = array();
+        if($projects->count() > 0)
+        {
+            foreach($projects as $key => $project)
+            {
+                $nodes_count = $project->nodes()->where('node_status', 1)->count();
+                if($nodes_count > 0)
+                {
+                    $project->nodes_count = $nodes_count;
+                    array_push($project_array, $project);
+                }
+            }
+        }
+        $data = array();
+        $data['project_list'] = $project_array;
+        return $this->sendResponse($data, 'success');
+    }
+
+    public function getProjectDetail($name)
+    {
+        try {
+            $data = array();
+            $project_cond['project_name'] = $name;
+            $project = Project::where($project_cond);
+            if($project->count() > 0){
+                $data['project'] = $project->first();
+                $data['status'] = 1;
+            }else{
+                $data['project'] = null;
+                $data['status'] = 0;
+            }
+        return response()->json($data, 200);
+        } catch (\Throwable $th) {
+            return $this->sendError('detail not found.');
+        }
+    }
+
 }

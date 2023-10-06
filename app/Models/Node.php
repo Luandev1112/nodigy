@@ -19,11 +19,18 @@ class Node extends Model
     public static $nodeStatus = [
         1 => 'Active',
         0 => 'Deactive',
+        2 => 'Installation',
+        3 => 'Installation Success'
     ];
 
-    public static $nodeType = [
-        'test' => 'Test',
-        'main' => 'Main',
+    public static $installationStatus = [
+        'server' => 'Choose Server',
+        'wallet' => 'Wallet',
+        'install' => 'Node Installing now',
+        'signatture' => 'Waiting for signature',
+        'fail' => 'Installation failed',
+        'success' => 'Successfully installed',
+        'stake' => 'Staking now'
     ];
 
     protected $fillable = [
@@ -33,12 +40,11 @@ class Node extends Model
         'user_wallet_id',
         'node_name',
         'node_logo',
-        'node_type',
-        'min_stake',
-        'min_price',
-        'setup_fee',
+        'node_status',
+        'installation_status',
+        'node_wallet',
         'description',
-        'node_status'
+        'node_wallet'
     ];
 
     public function User()
@@ -69,5 +75,10 @@ class Node extends Model
             }
         }
         return "";
+    }
+
+    public function wizard_setting_nym() 
+    {
+        return $this->hasMany(WizardSettingNym::class, 'node_id');
     }
 }

@@ -60,4 +60,8 @@ class User extends Authenticatable
     {
         return $this->id+1000000000;
     }
+
+    public function test() {
+        return "test aaa";
+    }
 }

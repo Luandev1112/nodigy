@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\API;
+use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Network;
 use App\Models\SupportedWallet;
 use App\Models\UserWallet;
@@ -23,7 +24,11 @@ class NYMController extends BaseController
         $user = $request->user;
         $cond['user_id'] = $user->id;
         $cond['node_status'] = 0;
-        $cond['project_id'] = 2;
+        // get NYM Project ID
+        $project_cond['project_name'] = 'NYM';
+        $project = Project::where($project_cond)->first();
+        $cond['project_id'] = $project->id;
+
         $nodes = Node::where($cond)->orderBy('id', 'DESC')->get();
         if($nodes->count() > 0){
             $node = $nodes[0];
@@ -36,11 +41,6 @@ class NYMController extends BaseController
                 $data['project'] = $project;
             }
 
-            // $server_id = $node->server_id;
-            // if($server_id != null) {
-            //     $server = Server::findOrFail($server_id);
-            //     $data['server'] = $server;
-            // }
             $user_wallet_id = $node->user_wallet_id;
             if($user_wallet_id != null) {
                 $user_wallet = UserWallet::findOrFail($user_wallet_id);
@@ -128,7 +128,7 @@ class NYMController extends BaseController
         $node_data = array();
         $node_data['user_id'] = $user->id;
         $node_data['project_id'] = $project->id;
-        // $node_data['server_id'] = $server_id;
+        $node_data['node_name'] = "NYM Node";
         // $node_data['setup_fee'] = $transaction_data['amount'];
         $node = Node::create($node_data);
         $data['node'] = $node;
@@ -156,7 +156,8 @@ class NYMController extends BaseController
         $node_cond['user_id'] = $user->id;
         $node_cond['node_status'] = 0;
         $node = Node::where($node_cond)->first();
-        $node->description = $wallet_address;
+        $node->node_wallet = $wallet_address;
+        $node->installation_status = 'wallet';
         $node->save();
 
         $settingCond = array();
@@ -189,7 +190,7 @@ class NYMController extends BaseController
         $node_cond['user_id'] = $user->id;
         $node_cond['node_status'] = 0;
         $node = Node::where($node_cond)->first();
-        $result['wallet'] = $node->description;
+        $result['wallet'] = $node->node_wallet;
         return response()->json($result, 200);
     }
 
@@ -200,6 +201,7 @@ class NYMController extends BaseController
         $server_id = $request->server_id;
         $node = Node::findOrFail($node_id);
         $node->server_id = $server_id;
+        $node->installation_status = 'server';
         $result = $node->save();
         return response()->json($result, 200);
     }
@@ -209,6 +211,18 @@ class NYMController extends BaseController
         $node_id = $request->node_id;
         $node = Node::where('id', $node_id)->first();
         $node->node_status = $request->node_status;
+        if(isset($request->installation_status)){
+            $node->installation_status = $request->installation_status;
+        }
+        $node->save();
+        return response()->json($node, 200);
+    }
+
+    public function setNodeInstallationStatus(Request $request)
+    {
+        $node_id = $request->node_id;
+        $node = Node::where('id', $node_id)->first();
+        $node->installation_status = $request->status;
         $node->save();
         return response()->json($node, 200);
     }

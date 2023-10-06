@@ -50,6 +50,7 @@ const App = () => {
                     <Route path="/admin/mybalance" element={<MyBalance />} />
                     <Route path="/admin/delegation" element={<Delegation />} />
                     <Route path="/admin/node" element={<Node />}/>
+                    <Route path="/admin/node/:project" element={<Node />}/>
                     <Route path="/admin/wallet-details" element={<WalletDetail />}/>
                     <Route path="/admin/delegatin-details" element={<DelegationDetails />}/>
                     <Route path="/admin/emails-setting" element={<EmailSetting />}/>

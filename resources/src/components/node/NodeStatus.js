@@ -7,44 +7,81 @@ import IconEmojiDanger from '../../assets/img/icon-emoji-danger.svg';
 import TrackVisibility from "react-on-screen";
 import Progress from '../../components/Progress';
 
-const NodeStatus = () => {
+const NodeStatus = ({projectType}) => {
     const [hourProgress, setHourProgress] = useState({ percantage: 100, progressColor: "#5129F1"});
     const [dayProgress, setDayProgress] = useState({ percantage: 80, progressColor: "#FACC15"});
     useEffect(()=>{
     
     }, []);
     return (
-        <div className="items item2">
-            <div className="text1">Uptime</div>
-            <div className="text2 color-active">~21%</div>
-            <div className="node-block-content">
-                <div className="row progress-content">
-                    <label className="col-sm-5">1 hour:</label>
-                    <div className="col-sm-7 text-end">
-                        <TrackVisibility
-                            once
-                            key={1}
-                            className="single-progress"
-                        >
-                            <Progress progress={hourProgress} /> 
-                        </TrackVisibility>
+        <React.Fragment>
+            {projectType=='nym'&&
+            <div className="items item2">
+                <div className="text1">Uptime</div>
+                <div className="text2 color-active">~21%</div>
+                <div className="node-block-content">
+                    <div className="row progress-content">
+                        <label className="col-sm-5">1 hour:</label>
+                        <div className="col-sm-7 text-end">
+                            <TrackVisibility
+                                once
+                                key={1}
+                                className="single-progress"
+                            >
+                                <Progress progress={hourProgress} /> 
+                            </TrackVisibility>
+                        </div>
+                    </div>
+                    <div className="row progress-content">
+                        <label className="col-sm-5">1 day:</label>
+                        <div className="col-sm-7 text-end">
+                            <TrackVisibility
+                                once
+                                key={1}
+                                className="single-progress"
+                            >
+                                <Progress progress={dayProgress} /> 
+                            </TrackVisibility>
+                        </div>
                     </div>
                 </div>
-                <div className="row progress-content">
-                    <label className="col-sm-5">1 day:</label>
-                    <div className="col-sm-7 text-end">
-                        <TrackVisibility
-                            once
-                            key={1}
-                            className="single-progress"
-                        >
-                            <Progress progress={dayProgress} /> 
-                        </TrackVisibility>
+                <div className="icons" role='button'><img src={IconEmojiActive} /></div>
+            </div>
+            }
+            {projectType=='goerli'&&
+            <div className="items item2">
+                <div className="text1">Status</div>
+                <div className="text2 color-active">~21%</div>
+                <div className="node-block-content">
+                    <div className="row progress-content">
+                        <label className="col-sm-5">1 hour:</label>
+                        <div className="col-sm-7 text-end">
+                            <TrackVisibility
+                                once
+                                key={1}
+                                className="single-progress"
+                            >
+                                <Progress progress={hourProgress} /> 
+                            </TrackVisibility>
+                        </div>
+                    </div>
+                    <div className="row progress-content">
+                        <label className="col-sm-5">1 day:</label>
+                        <div className="col-sm-7 text-end">
+                            <TrackVisibility
+                                once
+                                key={1}
+                                className="single-progress"
+                            >
+                                <Progress progress={dayProgress} /> 
+                            </TrackVisibility>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div className="icons" role='button'><img src={IconEmojiActive} /></div>
-        </div>
+            }
+            
+        </React.Fragment>
     )
 }
 export default NodeStatus;

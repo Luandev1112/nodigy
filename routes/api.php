@@ -40,6 +40,7 @@ Route::group(['middleware' => ['verifyBearerToken']], function () {
         Route::get('/', 'API\ProjectController@index');
         Route::get('/view/{id}', 'API\ProjectController@view');
         Route::get('/wizard-setting-view/{id}', 'API\ProjectController@wizardSettingView');
+        Route::get('/detail/{name}', 'API\ProjectController@getProjectDetail');
     });
 
     Route::group(['prefix' => 'newscategory'], function () {
@@ -86,15 +87,18 @@ Route::group(['middleware' => ['verifyBearerToken']], function () {
         Route::post('/verify-wallet-address', 'API\CommonController@verifyWalletAddress');
     });
 
-    // nym node apis
-    Route::get('/getInitialNode', 'API\NYMController@getInitialNode');
-    Route::post('/walletPayment', 'API\NYMController@walletPayment');
-    Route::post('/purchaseServer', 'API\NYMController@purchaseServer');
-    Route::get('/getTransaction/{hashId}', 'API\NYMController@getTransaction');
-    Route::post('/addWallet', 'API\NYMController@addWallet');
-    Route::post('/getNodeWallet', 'API\NYMController@getNodeWallet');
-    Route::post('/save-server-id', 'API\NYMController@saveServerId');
-    Route::post('/set-node-status', 'API\NYMController@setNodeStatus');
-    Route::post('/node-info',  'API\NYMController@getNodeInfo');
-    Route::post('/update-node-name',  'API\NYMController@updateNodeName');    
+    Route::group(['prefix' => 'nym'], function () {
+        Route::get('/get-initial-node', 'API\NYMController@getInitialNode');
+        Route::post('/wallet-payment', 'API\NYMController@walletPayment');
+        Route::post('/purchase-server', 'API\NYMController@purchaseServer');
+        Route::get('/get-transaction/{hashId}', 'API\NYMController@getTransaction');
+        Route::post('/add-wallet', 'API\NYMController@addWallet');
+        Route::post('/get-node-wallet', 'API\NYMController@getNodeWallet');
+        Route::post('/save-server-id', 'API\NYMController@saveServerId');
+        Route::post('/set-node-status', 'API\NYMController@setNodeStatus');
+        Route::post('/node-info',  'API\NYMController@getNodeInfo');
+        Route::post('/update-node-name',  'API\NYMController@updateNodeName');  
+        Route::post('/set-installation-status',  'API\NYMController@setNodeInstallationStatus');    
+    });
+
 });

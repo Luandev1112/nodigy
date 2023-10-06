@@ -58,5 +58,14 @@ const shortenAddress = (address) => {
     }
     return newString;
 }
+
+const validNumber = (number) => {
+    let status = false;
+    const re = /^-?\d+(?:[.,]\d*?)?$/;
+    if (number === '' || re.test(number)) {
+       status = true;
+    }
+    return status;
+}
   
-export {sendTrc20, shortenAddressString, shortenAddress}
+export {sendTrc20, shortenAddressString, shortenAddress, validNumber}

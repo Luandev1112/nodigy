@@ -13,6 +13,7 @@ use Exception;
 
 use App\Models\User;
 use App\Models\Node;
+use App\Models\Project;
 
 use App\Http\Resources\NodeResource;
 
@@ -97,5 +98,102 @@ class NodeController extends BaseController
             }
         }
         return $this->sendError('Error', ['error'=>'Something went wrong. Please try again'],404);
+    }
+
+    public function getProjectNodes(Request $request) 
+    {
+        $result = array();
+        $project_id = $request->project_id;
+        $project = Project::where('id', $project_id)->first();
+        
+        if($project) {
+            $nodelist = array();
+            $nodes = $project->nodes()->get();
+            if($nodes->count() > 0) {
+                foreach($nodes as $key => $node) {
+                    switch($node->node_status) {
+                        case 0:
+                            $node->status = "Installation";
+                        break;
+                        case 1:
+                            $node->status = "Active";
+                        break;
+                        case 2:
+                            $node->status = "Failed";
+                        break; 
+                    }
+                    switch ($project->project_name) {
+                        case 'NYM':
+                            $nym_settings = $node->wizard_setting_nym();
+                            if($nym_settings->count() > 0) {
+                                $nym_setting = $nym_settings->first();
+                                $node->nym_setting = $nym_setting;
+                            }
+                            array_push($nodelist, $node);
+                        break;
+                    }
+                    $node->logo_url = $node->getImageUrl();
+                }
+                $result['status'] = 1;
+                $result['nodes'] = $nodelist;
+                return response()->json($result, 200);
+            } else {
+                $result['status'] = 0;
+                $result['error'] = 'There is not any node';
+                return response()->json($result, 201);
+            }
+        }else {
+            $result['status'] = 0;
+            $result['error'] = 'There is not project';
+            return response()->json($result, 201);
+        }
+    }
+
+    public function updateNode(Request $request)
+    {
+        $result = array();
+        $loginUser = auth()->user();
+        if($loginUser) {
+            $node_id = $request->node_id;
+            $node = $loginUser->nodes()->where('id', $node_id)->first();
+            if($node) {
+                $node_logo = $node->node_logo;
+                $img_url = $node->getImageUrl();
+                 //image upload code
+                 if ($request->hasFile('file') && $request->file) 
+                 {   
+                     $dir = "public/node_logo/";
+                     if($node->node_logo) {
+                         if(Storage::disk('local')->exists($dir . $node->node_logo)) {
+                             Storage::delete($dir . $node->node_logo);
+                         }
+                     }
+                     $extension = $request->file("file")->getClientOriginalExtension();
+                     $filename = "node_img_".uniqid() . "_" . time() . "." . $extension;
+                     Storage::disk("local")->put($dir . $filename,\File::get($request->file("file")));
+                     $node->node_logo = $filename;
+                 }
+                $node->node_name = $request->node_name;
+                $node->node_url = $request->node_url;
+                $node->description = $request->description;
+                $node->save();
+                $node->logo_url = $node->getImageUrl();
+                $result['status'] = 1;
+                $result['node'] = $node;
+                return response($result, 200);
+            }else {
+                $result['status'] = 0;
+                $result['error'] = "There is not node";
+                return response()->json($result, 204);
+            }
+            return response()->json($result, 200);
+        } else {
+            $result['status'] = 0;
+            $result['error'] = "No user logged in";
+            return response()->json($result, 204);
+        }
+        // $node_id = $request->node_id;
+        // if($nod)
+        
     }
 }

@@ -26,10 +26,12 @@ class WalletConnectionController extends BaseController
                 $network = $project->network()->first();
                 $chain_id = 0;
                 $chain_name = "";
+                $net_type = 1;
                 $chain_rows = $project->chain();
                 if($chain_rows->count() > 0){
                     $chain_id = $chain_rows->first()->id;
                     $chain_name = $chain_rows->first()->chain_name;
+                    $net_type = $chain_rows->first()->chain_type;
                 }
                 $chain = $project->chain()->first();
                 $wizard_setting = null;
@@ -45,7 +47,7 @@ class WalletConnectionController extends BaseController
                     'id' => $project->id,
                     'project_name' => $project->project_name,
                     'image' => $project->image,
-                    'type' => $project->network_type,
+                    'type' => $net_type,
                     'min_stake' => $min_stake,
                     'setup_fee' => $setup_fee,
                     'description' => $project->description,
@@ -68,22 +70,29 @@ class WalletConnectionController extends BaseController
         $result = array();
         $result['projectlist'] = array();
         $cond = array();
+        $chain_type= 1;
         if($request->network_type == 'main') {
-            $cond['network_type'] = 1;
+            $chain_type = 0;
         }else if($request->network_type == 'test') {
-            $cond['network_type'] = 0;
+            $chain_type = 1;
         }
         $cond['project_status'] = 1;
-        $projects = Project::where($cond)->get();
+        $projects = Project::where($cond)->whereHas('chain', function($query) use($chain_type){
+            $query->where('chain_type', $chain_type);
+        })->get();
+
         if($projects->count() > 0) {
             foreach($projects as $project) {
                 $network = $project->network()->first();
                 $chain_id = 0;
                 $chain_name = "";
+                $net_type = 1;
                 $chain_rows = $project->chain();
                 if($chain_rows->count() > 0){
                     $chain_id = $chain_rows->first()->id;
                     $chain_name = $chain_rows->first()->chain_name;
+                    $net_type = $chain_rows->first()->chain_type;
+
                 }
                 $chain = $project->chain()->first();
                 $wizard_setting = null;
@@ -99,7 +108,7 @@ class WalletConnectionController extends BaseController
                     'id' => $project->id,
                     'project_name' => $project->project_name,
                     'image' => $project->image,
-                    'type' => $project->network_type,
+                    'type' => $net_type,
                     'min_stake' => $min_stake,
                     'setup_fee' => $setup_fee,
                     'description' => $project->description,

@@ -95,6 +95,11 @@ Route::post('admin/api/userWallet/edit', 'API\WalletConnectionController@editUse
 // NYM APIs
 Route::get('api/nym/getInitialNode', 'API\NYMController@getInitialNode');
 
+// nodes
+Route::get('admin/api/get-node-projects', 'API\ProjectController@getNodeProjects');
+Route::post('admin/api/get-project-nodes', 'API\NodeController@getProjectNodes');
+Route::get('admin/api/project-detail/{name}', 'API\ProjectController@getProjectDetail');
+Route::post('admin/api/update-node', 'API\NodeController@updateNode');
 
 Route::get( '/{any}', function () {
     return view('app');

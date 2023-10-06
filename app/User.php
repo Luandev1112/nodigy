@@ -9,6 +9,7 @@ use App\Notifications\ResetPasswordNotification;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Laravel\Passport\HasApiTokens;
+use App\Models\Node;
 
 class User extends Authenticatable
 {
@@ -64,5 +65,9 @@ class User extends Authenticatable
     public function getUserID()
     {
         return $this->id+1000000000;
+    }
+
+    public function nodes() {
+        return $this->hasMany(Node::class, 'user_id');
     }
 }

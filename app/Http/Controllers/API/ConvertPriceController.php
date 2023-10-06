@@ -59,9 +59,11 @@ class ConvertPriceController extends BaseController
 
     public function getEuroExchangeRate(Request $request)
     {
+        $loginUser = $request->user;
         $exchangeRate = $this->service->geBinancePrice();
         $result = array();
         $result['rate'] = $exchangeRate;
+        $result['user'] = $loginUser;
         return $this->sendResponse($result, 'Convert Price Successfully.');
 
     }

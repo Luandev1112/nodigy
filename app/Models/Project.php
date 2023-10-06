@@ -63,4 +63,9 @@ class Project extends Model
     {
         return $this->hasMany(WizardSetting::class);
     }
+
+    public  function nodes()
+    {
+        return $this->hasMany(Node::class, 'project_id');
+    }
 }

@@ -94,7 +94,9 @@
 
 @section('pagejs')
 <script>
+
 $(document).ready(function() {
+    localStorage.removeItem("disclamer_status");
     $('#form_login').on('keyup change','input, textarea, select',function(event) {
         if($.trim($(this).val()) && $(this).val().length >0){
             $(this).removeClass('is-invalid')

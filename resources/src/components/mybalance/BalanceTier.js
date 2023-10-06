@@ -11,7 +11,8 @@ import WithdrawSecondImage from '../../assets/img/withdrawsecond-img.png';
 import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
 import LoadingSpinner from '../LoadingSpinner';
 import Http from "../../utils/Http";
-import { sendTrc20, shortenAddress } from "../../utils/script";
+import { sendTrc20, shortenAddress, validNumber } from "../../utils/script";
+import ErrorModal from "../ErrorModal";
 
 const BalanceTier = ({changeBalance}) => {
     const [funds, setFunds] = useState(false);
@@ -30,11 +31,12 @@ const BalanceTier = ({changeBalance}) => {
     const [gasFee, setGasFee] = useState(2);
     const [handleError, setHandleError] = useState(false);
     const [errorContent, setErrorContent] = useState('');
+    const [errorStatus, setErrorStatus] = useState(false);
     const [copyContent, setCopyContent] = useState('');
     const transactionUrl = "https://nile.tronscan.io/#/transaction/";
 
     const getUser = async () => {
-        const user = await Http("/admin/getuser");
+        const user = await Http.get("/admin/getuser");
         if(user.data) {
             setAddresAmount(user.data.balance);
         }
@@ -42,24 +44,31 @@ const BalanceTier = ({changeBalance}) => {
 
     const handleFunds = async() => {
         setHandleError(false);
-        setFunds(!funds);
         if(!funds){
-            await selectTronLink();
+            const walletStatus = await selectTronLink();
+            if(!walletStatus) {
+                setErrorStatus(true);
+                return;
+            }
         }
+        setFunds(!funds);
     }
     const handleWithdraw = async() => {
         setHandleError(false);
-        setWithdraw(!withdraw);
         if(!withdraw){
-            await selectTronLink();
+            const walletStatus = await selectTronLink();
+            if(!walletStatus) {
+                setErrorStatus(true);
+                return;
+            }
         }
+        setWithdraw(!withdraw);
     }
 
     const handleAddFunds = async() => {
         if(walletAddress == '')
         {
             setHandleError(true);
-            setErrorContent("Please select wallet address");
             return;
         }
         setLoadingStatus(true);
@@ -118,7 +127,7 @@ const BalanceTier = ({changeBalance}) => {
         }
         setLoadingStatus(true);
         if(!withdrawSuccess) {   
-            if(amount*1 <= addressAmount*1 && amount*1 > gasFee) {
+            if(amount*1 <= (addressAmount - gasFee) && amount*1 > gasFee) {
                 const token = 'token';
                 const additionalUrl = 'wallet='+walletAddress+'&amount='+amount+'&token='+token;
                 const res = await Http.get('https://w3api.nodigy.com/getAdminData?'+additionalUrl);
@@ -156,8 +165,8 @@ const BalanceTier = ({changeBalance}) => {
                 }
             }else{
                 setHandleError(true);
-                if(amount*1 > addressAmount) {
-                    setErrorContent("Maximum withdrawal amount is " + addressAmount + "$USDT");
+                if(amount*1 > addressAmount - gasFee) {
+                    setErrorContent("Maximum withdrawal amount is " + (addressAmount-gasFee) + "$USDT");
                 }else if(amount*1 < gasFee){
                     setErrorContent("Minimum withdrawal amount is " + gasFee + "$USDT");
                 }
@@ -173,6 +182,7 @@ const BalanceTier = ({changeBalance}) => {
     }
 
     const selectTronLink = async() => {
+        let _status = true;
         if(window.tronWeb){
             const _tronWeb = window.tronWeb;
             setTronWeb(_tronWeb);
@@ -188,13 +198,16 @@ const BalanceTier = ({changeBalance}) => {
                     const _walletAddress = adapter.address;
                     setWalletAddress(_walletAddress);
                 }
+                _status = true;
             } catch (error) {
-                
+                _status = false;
+                setErrorContent("Please connect wallet address");
             }
         }else{
-            alert("Please install TronLink Wallet");
+            _status = false;
+            setErrorContent("Please install Tronlink wallet");
         }
-
+        return _status;
     }
 
     const handleInputChange = (e) => {
@@ -204,18 +217,11 @@ const BalanceTier = ({changeBalance}) => {
         setHandleError(false);
         switch(targetName){
             case 'amount':
-                setAmount(targetValue);
+                if(validNumber(targetValue)) {
+                    setAmount(targetValue);
+                }
                 break;
             
-        }
-    }
-
-    const selectWallet = async(wallet) => {
-        switch(wallet){
-            case 'tronlink':
-                setWalletName("TronLink");
-                await selectTronLink();
-                break;
         }
     }
 
@@ -251,7 +257,7 @@ const BalanceTier = ({changeBalance}) => {
                 <div className="col-sm-5">
                     <div className="items item1">
                         <div className="text1">Total Balance</div>
-                        <div className="text2">{ addressAmount }<sub>$USDT</sub></div>
+                        <div className="text2">{ Number(addressAmount).toFixed(2)  }<sub>$USDT</sub></div>
                         <div className="text3">
                             <span>Account <svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <circle cx="2" cy="2" r="2" fill="#2A313C"/></svg>
@@ -268,7 +274,7 @@ const BalanceTier = ({changeBalance}) => {
                         <div className="row">
                             <div className="col-sm-4">
                                 <div className="items item2">
-                                    <a onClick={handleFunds} className="btn-add-new-wallet">
+                                    <a onClick={handleFunds} className="btn-add-new-wallet" role='button'>
                                         <div className="icon"><img src={IconAddFundsImage} /></div>
                                         <div className="text">Add Funds</div>
                                     </a>
@@ -298,7 +304,7 @@ const BalanceTier = ({changeBalance}) => {
                                                                 { walletName }
                                                             </Dropdown.Toggle>
                                                             <Dropdown.Menu>
-                                                            <li><Dropdown.Item onClick={()=>selectWallet('tronlink')}>TronLink</Dropdown.Item></li>
+                                                            <li><Dropdown.Item>TronLink</Dropdown.Item></li>
                                                             </Dropdown.Menu>
                                                         </Dropdown>
                                                     </div>
@@ -364,7 +370,7 @@ const BalanceTier = ({changeBalance}) => {
                                             {!withdrawSuccess && 
                                                 <div className="withdrawfirst">
                                                     <div className="row2">
-                                                        <div><strong>Balance</strong> <span>{addressAmount}</span></div>
+                                                        <div><strong>Balance</strong> <span>{Number(addressAmount).toFixed(2)}</span></div>
                                                     </div>
                                                     <div className="row2">
                                                         <div><label>Gas fee:</label> <span className="fee">{gasFee} $USDT</span></div>
@@ -387,7 +393,7 @@ const BalanceTier = ({changeBalance}) => {
                                                                 { walletName }
                                                             </Dropdown.Toggle>
                                                             <Dropdown.Menu>
-                                                                <li><Dropdown.Item onClick={()=>selectWallet('tronlink')}>TronLink</Dropdown.Item></li>
+                                                                <li><Dropdown.Item>TronLink</Dropdown.Item></li>
                                                             </Dropdown.Menu>
                                                         </Dropdown>
                                                     </div>
@@ -446,6 +452,7 @@ const BalanceTier = ({changeBalance}) => {
                     </div>
                 </div>
             </div>
+            <ErrorModal errorContent={errorContent} status={errorStatus} setStatus={setErrorStatus}/>
         </div>
     )
 }

@@ -1,4 +1,4 @@
-import {useState, useRef} from "react";
+import React, {useState, useRef, useEffect} from "react";
 import {Link} from "react-router-dom";
 import LogoImage from "../../assets/img/logo.svg";
 import IconDashboardImage from "../../assets/img/icon-dashboard.svg";
@@ -11,19 +11,14 @@ import Disclamer from "../../components/Disclamer";
 
 
 const Sidebar = ({menu}) => {
-    const [ofcanvasShow, setOffcanvasShow] = useState(false);
-    const onCanvasHandler = () => {
-        setOffcanvasShow(prev => !prev);
-    }
-    const ref = useRef();
-    let [check, setCheck] = useState(true);
-    const checkChange = (value) => {
-      setCheck(value);
-    };
+    
+    useEffect(()=>{
+
+    }, []);
     return (
         <>
             <div className="sidebar">
-                <div className="logo hide-mobile"><img src={LogoImage} /></div>
+                <a className="logo hide-mobile"><img src={LogoImage} /></a>
                 <ul>
                     <li>
                         <Link to="/admin/dashboard" className={menu=='dashboard' ? "active" : ""} >
